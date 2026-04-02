@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Types de création artisanale (bracelet, bougie, etc.)
+model CreationType {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  icon        String?
+  crystals    Crystal[] @relation("CrystalCreationTypes")
+  createdAt   DateTime  @default(now())
+}
+
+// Chakras énergétiques
+model Chakra {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  color       String
+  description String?
+  position    Int       // Position du chakra (1=racine ... 7=couronne)
+  crystals    Crystal[] @relation("CrystalChakras")
+}
+
+// Signes du zodiaque
+model ZodiacSign {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  symbol      String?
+  element     String?   // Feu, Terre, Air, Eau
+  crystals    Crystal[] @relation("CrystalZodiacs")
+}
+
+// Précautions d'utilisation
+model Precaution {
+  id          Int       @id @default(autoincrement())
+  description String
+  crystals    Crystal[]
+}
+
+// Stock par catégorie de cristal
+model Stock {
+  id              Int      @id @default(autoincrement())
+  crystal         Crystal  @relation(fields: [crystalId], references: [id], onDelete: Cascade)
+  crystalId       Int      @unique
+  // Quantités par type de forme
+  perlesCailloux  Int      @default(0)
+  perles2mm       Int      @default(0)
+  perles4mm       Int      @default(0)
+  perles6mm       Int      @default(0)
+  pierresRoulees  Int      @default(0)
+  pierresBrutes   Int      @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
+// Modèle principal : Cristal
+model Crystal {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  slug            String   @unique
+  description     String?
+  // Propriétés visuelles
+  color           String   // Couleur principale (hex ou nom)
+  colors          String[] // Toutes les couleurs possibles
+  imageUrl        String?
+  // Propriétés lithothérapiques
+  virtues         String[] // Vertus / bénéfices
+  properties      String[] // Propriétés générales
+  hardness        Float?   // Dureté sur échelle de Mohs
+  origin          String?  // Pays/région d'origine
+  // Relations
+  chakras         Chakra[]      @relation("CrystalChakras")
+  zodiacSigns     ZodiacSign[]  @relation("CrystalZodiacs")
+  precautions     Precaution[]
+  creationTypes   CreationType[] @relation("CrystalCreationTypes")
+  stock           Stock?
+  // Compatibilité entre cristaux (relation auto-référente)
+  compatibleWith  Crystal[]  @relation("CrystalCompatibility")
+  compatibleFrom  Crystal[]  @relation("CrystalCompatibility")
+  // Incompatibilités entre cristaux
+  incompatibleWith Crystal[] @relation("CrystalIncompatibility")
+  incompatibleFrom Crystal[] @relation("CrystalIncompatibility")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}

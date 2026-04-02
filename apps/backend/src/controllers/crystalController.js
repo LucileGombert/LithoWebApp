@@ -1,4 +1,5 @@
 const crystalService = require('../services/crystalService');
+const researchService = require('../services/researchService');
 
 /**
  * GET /api/crystals
@@ -127,6 +128,40 @@ async function suggestForCreation(req, res) {
 }
 
 /**
+ * POST /api/crystals/research
+ * Recherche automatique (Wikipedia + Gemini) ou semi-automatique (URLs + Gemini)
+ */
+async function researchCrystal(req, res) {
+  try {
+    const { name, mode, urls } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Le nom du cristal est requis' });
+    }
+
+    let data;
+    if (mode === 'semi-auto') {
+      if (!urls || !Array.isArray(urls) || urls.length === 0) {
+        return res.status(400).json({ error: 'Au moins une URL est requise pour le mode semi-automatique' });
+      }
+      data = await researchService.researchCrystalWithSources(name, urls);
+    } else {
+      data = await researchService.researchCrystalAuto(name);
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.error('researchCrystal error:', err);
+    let message = err.message || 'Erreur lors de la recherche';
+    if (message.includes('429') || message.includes('Too Many Requests') || message.includes('quota')) {
+      message = 'Quota Gemini dépassé ou API non activée. Vérifiez que l\'API "Generative Language" est bien activée dans Google Cloud Console pour votre clé.';
+    } else if (message.includes('403') || message.includes('API key')) {
+      message = 'Clé API Gemini invalide ou non autorisée. Vérifiez votre clé dans le fichier .env.';
+    }
+    res.status(500).json({ error: message });
+  }
+}
+
+/**
  * POST /api/crystals/generate
  * Endpoint IA simulé (MVP)
  */
@@ -173,5 +208,6 @@ module.exports = {
   deleteCrystal,
   updateStock,
   suggestForCreation,
-  generateWithAI
+  generateWithAI,
+  researchCrystal
 };

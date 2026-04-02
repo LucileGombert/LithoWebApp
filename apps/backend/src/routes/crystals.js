@@ -5,6 +5,7 @@ const crystalController = require('../controllers/crystalController');
 // Routes spéciales AVANT /:id pour éviter les conflits
 router.post('/suggest', crystalController.suggestForCreation);
 router.post('/generate', crystalController.generateWithAI);
+router.post('/research', crystalController.researchCrystal);
 router.get('/slug/:slug', crystalController.getCrystalBySlug);
 
 // CRUD standard

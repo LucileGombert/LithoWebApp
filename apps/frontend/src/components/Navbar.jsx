@@ -5,6 +5,7 @@ const links = [
   { to: '/', label: 'Bibliothèque', icon: '💎' },
   { to: '/favorites', label: 'Favoris', icon: '❤️' },
   { to: '/creator', label: 'Créateur', icon: '✨' },
+  { to: '/add-crystal', label: 'Ajouter', icon: '➕' },
 ];
 
 export default function Navbar() {

@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import CrystalDetail from './pages/CrystalDetail';
 import Favorites from './pages/Favorites';
 import Creator from './pages/Creator';
+import AddCrystal from './pages/AddCrystal';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="/crystals/:id" element={<CrystalDetail />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/creator" element={<Creator />} />
+            <Route path="/add-crystal" element={<AddCrystal />} />
           </Routes>
         </main>
       </div>

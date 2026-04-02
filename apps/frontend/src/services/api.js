@@ -31,6 +31,7 @@ export const crystalApi = {
   updateStock: (id, stock) => request(`/crystals/${id}/stock`, { method: 'PUT', body: JSON.stringify(stock) }),
   suggest: (params) => request('/crystals/suggest', { method: 'POST', body: JSON.stringify(params) }),
   generate: (params) => request('/crystals/generate', { method: 'POST', body: JSON.stringify(params) }),
+  research: (params) => request('/crystals/research', { method: 'POST', body: JSON.stringify(params) }),
 };
 
 // === Chakras ===

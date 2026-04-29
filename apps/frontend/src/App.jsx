@@ -9,7 +9,7 @@ import AddCrystal from './pages/AddCrystal';
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-stone-950">
+      <div className="min-h-screen bg-white">
         <Navbar />
         <main className="pb-12">
           <Routes>

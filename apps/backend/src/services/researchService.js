@@ -4,21 +4,22 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 /**
- * Récupère le résumé Wikipedia (FR puis EN) pour un cristal
+ * Récupère le résumé Wikipedia (FR puis EN) et l'image principale pour un cristal
  */
 async function fetchWikipediaContent(crystalName) {
   const frUrl = `https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(crystalName)}`;
   const enUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(crystalName)}`;
 
   let content = '';
+  let imageUrl = null;
 
   try {
     const frRes = await fetch(frUrl);
     if (frRes.ok) {
       const frData = await frRes.json();
-      if (frData.extract) {
-        content += `Source: Wikipedia FR\n${frData.extract}\n\n`;
-      }
+      if (frData.extract) content += `Source: Wikipedia FR\n${frData.extract}\n\n`;
+      if (!imageUrl && frData.originalimage?.source) imageUrl = frData.originalimage.source;
+      if (!imageUrl && frData.thumbnail?.source) imageUrl = frData.thumbnail.source;
     }
   } catch (_) {}
 
@@ -26,13 +27,13 @@ async function fetchWikipediaContent(crystalName) {
     const enRes = await fetch(enUrl);
     if (enRes.ok) {
       const enData = await enRes.json();
-      if (enData.extract) {
-        content += `Source: Wikipedia EN\n${enData.extract}\n\n`;
-      }
+      if (enData.extract) content += `Source: Wikipedia EN\n${enData.extract}\n\n`;
+      if (!imageUrl && enData.originalimage?.source) imageUrl = enData.originalimage.source;
+      if (!imageUrl && enData.thumbnail?.source) imageUrl = enData.thumbnail.source;
     }
   } catch (_) {}
 
-  return content;
+  return { content, imageUrl };
 }
 
 /**
@@ -101,23 +102,26 @@ Règles strictes:
  * Mode automatique : Wikipedia + Gemini
  */
 async function researchCrystalAuto(crystalName) {
-  const sources = await fetchWikipediaContent(crystalName);
+  const { content, imageUrl } = await fetchWikipediaContent(crystalName);
 
-  if (!sources.trim()) {
+  if (!content.trim()) {
     throw new Error(`Aucune information trouvée sur Wikipedia pour "${crystalName}"`);
   }
 
-  const prompt = buildExtractionPrompt(crystalName, sources);
+  const prompt = buildExtractionPrompt(crystalName, content);
   const result = await model.generateContent(prompt);
   const text = result.response.text().trim();
 
+  let data;
   try {
-    return JSON.parse(text);
+    data = JSON.parse(text);
   } catch {
-    // Tentative de nettoyage si Gemini a ajouté des backticks malgré la consigne
     const cleaned = text.replace(/^```json\n?/i, '').replace(/```$/i, '').trim();
-    return JSON.parse(cleaned);
+    data = JSON.parse(cleaned);
   }
+
+  if (imageUrl) data.imageUrl = imageUrl;
+  return data;
 }
 
 /**

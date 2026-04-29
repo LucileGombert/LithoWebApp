@@ -88,17 +88,17 @@ async function getCrystalBySlug(slug) {
  * Créer un nouveau cristal
  */
 async function createCrystal(data) {
-  const { chakraIds, zodiacIds, precautionIds, creationTypeIds, compatibleWithIds, incompatibleWithIds, stock, ...crystalData } = data;
+  const { chakraIds, zodiacIds, precautions, creationTypeIds, compatibleWithIds, incompatibleWithIds, stock, ...crystalData } = data;
 
   return prisma.crystal.create({
     data: {
       ...crystalData,
-      chakras: chakraIds ? { connect: chakraIds.map(id => ({ id })) } : undefined,
-      zodiacSigns: zodiacIds ? { connect: zodiacIds.map(id => ({ id })) } : undefined,
-      precautions: precautionIds ? { connect: precautionIds.map(id => ({ id })) } : undefined,
-      creationTypes: creationTypeIds ? { connect: creationTypeIds.map(id => ({ id })) } : undefined,
-      compatibleWith: compatibleWithIds ? { connect: compatibleWithIds.map(id => ({ id })) } : undefined,
-      incompatibleWith: incompatibleWithIds ? { connect: incompatibleWithIds.map(id => ({ id })) } : undefined,
+      chakras: chakraIds?.length ? { connect: chakraIds.map(id => ({ id })) } : undefined,
+      zodiacSigns: zodiacIds?.length ? { connect: zodiacIds.map(id => ({ id })) } : undefined,
+      precautions: precautions?.length ? { create: precautions.map(d => ({ description: d })) } : undefined,
+      creationTypes: creationTypeIds?.length ? { connect: creationTypeIds.map(id => ({ id })) } : undefined,
+      compatibleWith: compatibleWithIds?.length ? { connect: compatibleWithIds.map(id => ({ id })) } : undefined,
+      incompatibleWith: incompatibleWithIds?.length ? { connect: incompatibleWithIds.map(id => ({ id })) } : undefined,
       stock: stock ? { create: stock } : undefined
     },
     include: crystalIncludes
@@ -109,7 +109,7 @@ async function createCrystal(data) {
  * Mettre à jour un cristal
  */
 async function updateCrystal(id, data) {
-  const { chakraIds, zodiacIds, precautionIds, creationTypeIds, compatibleWithIds, incompatibleWithIds, stock, ...crystalData } = data;
+  const { chakraIds, zodiacIds, precautions, creationTypeIds, compatibleWithIds, incompatibleWithIds, stock, ...crystalData } = data;
 
   return prisma.crystal.update({
     where: { id: Number(id) },
@@ -117,7 +117,9 @@ async function updateCrystal(id, data) {
       ...crystalData,
       chakras: chakraIds ? { set: chakraIds.map(id => ({ id })) } : undefined,
       zodiacSigns: zodiacIds ? { set: zodiacIds.map(id => ({ id })) } : undefined,
-      precautions: precautionIds ? { set: precautionIds.map(id => ({ id })) } : undefined,
+      precautions: precautions !== undefined
+        ? { deleteMany: {}, create: precautions.map(d => ({ description: d })) }
+        : undefined,
       creationTypes: creationTypeIds ? { set: creationTypeIds.map(id => ({ id })) } : undefined,
       compatibleWith: compatibleWithIds ? { set: compatibleWithIds.map(id => ({ id })) } : undefined,
       incompatibleWith: incompatibleWithIds ? { set: incompatibleWithIds.map(id => ({ id })) } : undefined,

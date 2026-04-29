@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   body {
-    @apply bg-stone-950 text-stone-100 font-sans antialiased;
+    @apply bg-red-200 text-stone-100 font-sans antialiased;
   }
 
   ::-webkit-scrollbar {
@@ -24,9 +25,9 @@
 
 @layer components {
   .crystal-card {
-    @apply bg-white border border-stone-800 rounded-2xl overflow-hidden
-           transition-all duration-300 hover:border-stone-600 hover:shadow-xl
-           hover:shadow-black/50 hover:-translate-y-1 cursor-pointer;
+    @apply bg-red-50 border border-red-200 rounded-2xl overflow-hidden
+           transition-all duration-300 hover:border-red-300 hover:shadow-xl
+           hover:shadow-red-100/50 hover:-translate-y-1 cursor-pointer;
   }
 
   .btn-primary {
@@ -47,5 +48,5 @@
     @apply bg-violet-800 border border-stone-700 rounded-xl px-4 py-2.5 text-stone-100
            placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-violet-500
            focus:border-transparent transition-all duration-200 w-full;
-  }
+  } 
 }

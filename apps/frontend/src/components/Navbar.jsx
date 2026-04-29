@@ -34,7 +34,7 @@ export default function Navbar() {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'bg-violet-600/20 text-violet-300 border border-violet-500/30'
-                      : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800'
+                      : 'text-stone-400 hover:text-stone-200 hover:bg-sky-300'
                   }`}
                 >
                   <span>{link.icon}</span>

@@ -6,6 +6,7 @@ import { crystalApi, chakraApi, zodiacApi } from '../services/api';
 const emptyForm = {
   name: '',
   color: '#8B5CF6',
+  imageUrl: '',
   colors: [],
   description: '',
   virtues: [],
@@ -143,6 +144,30 @@ function CrystalForm({ form, onChange, chakras, zodiacs }) {
               placeholder="#8B5CF6"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Image */}
+      <div>
+        <label className="block text-sm font-medium text-stone-300 mb-1">URL de l'image</label>
+        <div className="flex gap-3 items-start">
+          <div className="flex-1">
+            <input
+              type="url"
+              value={form.imageUrl}
+              onChange={e => field('imageUrl', e.target.value)}
+              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 text-sm focus:outline-none focus:border-violet-500"
+              placeholder="https://..."
+            />
+          </div>
+          {form.imageUrl && (
+            <img
+              src={form.imageUrl}
+              alt="Aperçu"
+              className="h-16 w-16 rounded-lg object-cover border border-stone-700 flex-shrink-0"
+              onError={e => { e.target.style.display = 'none'; }}
+            />
+          )}
         </div>
       </div>
 
@@ -298,6 +323,7 @@ export default function AddCrystal() {
       setForm({
         name: data.name ?? crystalName,
         color: data.color ?? '#8B5CF6',
+        imageUrl: data.imageUrl ?? '',
         colors: data.colors ?? [],
         description: data.description ?? '',
         virtues: data.virtues ?? [],
@@ -347,6 +373,7 @@ export default function AddCrystal() {
       const payload = {
         name: form.name.trim(),
         color: form.color,
+        imageUrl: form.imageUrl || null,
         colors: form.colors,
         description: form.description,
         virtues: form.virtues,
@@ -355,10 +382,8 @@ export default function AddCrystal() {
         origin: form.origin || null,
         chakraIds,
         zodiacIds,
-        precautions: form.precautions.length
-          ? { create: form.precautions.map(d => ({ description: d })) }
-          : undefined,
-        stock: { create: form.stock },
+        precautions: form.precautions,
+        stock: form.stock,
       };
 
       const created = await crystalApi.create(payload);

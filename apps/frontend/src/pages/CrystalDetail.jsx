@@ -82,59 +82,23 @@ function MultiSelect({ label, options, selected, onChange }) {
 
 // ─── Éditeur de stock (mode lecture seule) ────────────────────────────────────
 
-function StockEditor({ crystal, onUpdate }) {
-  const [editing, setEditing] = useState(false);
-  const [stockValues, setStockValues] = useState(crystal.stock || {});
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await crystalApi.updateStock(crystal.id, stockValues);
-      onUpdate(stockValues);
-      setEditing(false);
-    } catch (err) {
-      alert('Erreur lors de la sauvegarde : ' + err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
+function StockDisplay({ stock }) {
   return (
     <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-stone-200">📦 Stock</h3>
-        <button onClick={() => setEditing(!editing)} className="text-xs text-violet-400 hover:text-violet-300 underline">
-          {editing ? 'Annuler' : 'Modifier'}
-        </button>
-      </div>
+      <h3 className="font-semibold text-stone-200 mb-4">📦 Stock</h3>
       <div className="grid grid-cols-2 gap-3">
         {STOCK_CATEGORIES.map(({ key, label }) => (
           <div key={key} className="flex items-center justify-between bg-stone-800 rounded-xl px-3 py-2">
             <span className="text-xs text-stone-400">{label}</span>
-            {editing ? (
-              <input
-                type="number" min="0"
-                value={stockValues[key] ?? 0}
-                onChange={e => setStockValues(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                className="w-16 bg-stone-700 border border-stone-600 rounded-lg px-2 py-1 text-sm text-stone-100 text-right focus:outline-none focus:ring-1 focus:ring-violet-500"
-              />
-            ) : (
-              <span className={`text-sm font-medium ${
-                (stockValues[key] || 0) === 0 ? 'text-red-400' :
-                (stockValues[key] || 0) < 5 ? 'text-amber-400' : 'text-green-400'
-              }`}>
-                {stockValues[key] || 0}
-              </span>
-            )}
+            <span className={`text-sm font-medium ${
+              (stock[key] || 0) === 0 ? 'text-red-400' :
+              (stock[key] || 0) < 5 ? 'text-amber-400' : 'text-green-400'
+            }`}>
+              {stock[key] || 0}
+            </span>
           </div>
         ))}
       </div>
-      {editing && (
-        <button onClick={handleSave} disabled={saving} className="btn-primary w-full mt-4 text-sm">
-          {saving ? 'Sauvegarde...' : '💾 Enregistrer le stock'}
-        </button>
-      )}
     </div>
   );
 }
@@ -144,7 +108,7 @@ function StockEditor({ crystal, onUpdate }) {
 export default function CrystalDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { fetchCrystalById, selectedCrystal: crystal, loading, error, updateStockLocal } = useCrystalStore();
+  const { fetchCrystalById, selectedCrystal: crystal, loading, error } = useCrystalStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -170,7 +134,6 @@ export default function CrystalDetail() {
       description: crystal.description || '',
       virtues: crystal.virtues || [],
       properties: crystal.properties || [],
-      hardness: crystal.hardness ?? '',
       origin: crystal.origin || '',
       chakras: crystal.chakras?.map(c => c.name) || [],
       zodiacSigns: crystal.zodiacSigns?.map(z => z.name) || [],
@@ -322,19 +285,12 @@ export default function CrystalDetail() {
               placeholder="Propriétés lithothérapeutiques..." />
           </div>
 
-          {/* Dureté + Origine */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Dureté (Mohs)</label>
-              <input type="number" min="1" max="10" step="0.5" value={editForm.hardness} onChange={e => field('hardness', e.target.value)}
-                className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 focus:outline-none focus:border-violet-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Origine</label>
-              <input type="text" value={editForm.origin} onChange={e => field('origin', e.target.value)}
-                placeholder="Ex: Brésil, Madagascar..."
-                className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500" />
-            </div>
+          {/* Origine */}
+          <div>
+            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Origine</label>
+            <input type="text" value={editForm.origin} onChange={e => field('origin', e.target.value)}
+              placeholder="Ex: Brésil, Madagascar..."
+              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500" />
           </div>
 
           {/* Tags */}
@@ -444,12 +400,6 @@ export default function CrystalDetail() {
 
           {/* Infos rapides */}
           <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-2 text-sm">
-            {crystal.hardness && (
-              <div className="flex justify-between">
-                <span className="text-stone-500">Dureté (Mohs)</span>
-                <span className="text-stone-200">{crystal.hardness}</span>
-              </div>
-            )}
             {crystal.origin && (
               <div className="flex justify-between">
                 <span className="text-stone-500">Origine</span>
@@ -465,9 +415,7 @@ export default function CrystalDetail() {
           </div>
 
           {/* Stock */}
-          {crystal.stock && (
-            <StockEditor crystal={crystal} onUpdate={(s) => updateStockLocal(crystal.id, s)} />
-          )}
+          {crystal.stock && <StockDisplay stock={crystal.stock} />}
         </div>
 
         {/* Colonne droite */}

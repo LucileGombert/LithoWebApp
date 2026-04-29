@@ -32,12 +32,12 @@ async function main() {
 
   // Types de création artisanale
   const creationTypes = await Promise.all([
-    prisma.creationType.upsert({ where: { name: 'Bracelet' }, update: {}, create: { name: 'Bracelet', description: 'Bracelet de perles en cristaux naturels', icon: '📿' } }),
-    prisma.creationType.upsert({ where: { name: 'Collier' }, update: {}, create: { name: 'Collier', description: 'Collier avec pendentif ou perles', icon: '📿' } }),
-    prisma.creationType.upsert({ where: { name: 'Bougie' }, update: {}, create: { name: 'Bougie', description: 'Bougie infusée aux cristaux', icon: '🕯️' } }),
-    prisma.creationType.upsert({ where: { name: 'Grille Cristalline' }, update: {}, create: { name: 'Grille Cristalline', description: 'Arrangement géométrique de cristaux', icon: '✨' } }),
-    prisma.creationType.upsert({ where: { name: 'Élixir' }, update: {}, create: { name: 'Élixir', description: 'Eau cristallisée pour usage interne ou externe', icon: '💧' } }),
-    prisma.creationType.upsert({ where: { name: 'Décoration' }, update: {}, create: { name: 'Décoration', description: 'Objet décoratif au domicile', icon: '🏠' } }),
+    prisma.creationType.upsert({ where: { name: 'Bijoux' }, update: { icon: '📿' }, create: { name: 'Bijoux', description: 'Bijoux ornés de cristaux naturels', icon: '📿' } }),
+    prisma.creationType.upsert({ where: { name: 'Porte-clé' }, update: { icon: '🗝️' }, create: { name: 'Porte-clé', description: 'Porte-clé avec cristaux', icon: '🗝️' } }),
+    prisma.creationType.upsert({ where: { name: 'Marque page' }, update: { icon: '🔖' }, create: { name: 'Marque page', description: 'Marque-page décoré de cristaux', icon: '🔖' } }),
+    prisma.creationType.upsert({ where: { name: 'Bougie' }, update: { icon: '🕯️' }, create: { name: 'Bougie', description: 'Bougie ornée de cristaux', icon: '🕯️' } }),
+    prisma.creationType.upsert({ where: { name: 'Décoration' }, update: { icon: '🪶' }, create: { name: 'Décoration', description: 'Objet décoratif', icon: '🪶' } }),
+    prisma.creationType.upsert({ where: { name: 'Elixir' }, update: { icon: '✨' }, create: { name: 'Elixir', description: 'Élixir aux huiles végétales et cristaux', icon: '✨' } }),
   ]);
 
   // Précautions communes

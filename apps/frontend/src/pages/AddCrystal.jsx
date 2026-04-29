@@ -11,7 +11,6 @@ const emptyForm = {
   description: '',
   virtues: [],
   properties: [],
-  hardness: '',
   origin: '',
   chakras: [],
   zodiacSigns: [],
@@ -183,29 +182,16 @@ function CrystalForm({ form, onChange, chakras, zodiacs }) {
         />
       </div>
 
-      {/* Dureté + Origine */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Dureté (Mohs)</label>
-          <input
-            type="number"
-            min="1" max="10" step="0.5"
-            value={form.hardness}
-            onChange={e => field('hardness', e.target.value)}
-            className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 focus:outline-none focus:border-violet-500"
-            placeholder="Ex: 7"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Origine</label>
-          <input
-            type="text"
-            value={form.origin}
-            onChange={e => field('origin', e.target.value)}
-            className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
-            placeholder="Ex: Brésil, Madagascar..."
-          />
-        </div>
+      {/* Origine */}
+      <div>
+        <label className="block text-sm font-medium text-stone-300 mb-1">Origine</label>
+        <input
+          type="text"
+          value={form.origin}
+          onChange={e => field('origin', e.target.value)}
+          className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
+          placeholder="Ex: Brésil, Madagascar..."
+        />
       </div>
 
       {/* Couleurs */}

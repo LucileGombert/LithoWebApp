@@ -42,13 +42,13 @@ function SelectedCrystalPreview({ selectedCrystals, crystals, onRemove }) {
   }
 
   return (
-    <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-      <h3 className="font-semibold text-stone-200 mb-3">
-        Ma sélection ({selected.length} cristal{selected.length > 1 ? 's' : ''})
+    <div className="bg-red-50 border border-stone-800 rounded-2xl p-5">
+      <h3 className="font-semibold text-yellow-800 mb-3">
+        Ma sélection ({selected.length} crista{selected.length > 1 ? 'ux' : 'l'})
       </h3>
 
       {/* Aperçu visuel — ligne de perles */}
-      <div className="flex items-center gap-2 flex-wrap mb-4 p-3 bg-stone-800 rounded-xl min-h-14">
+      <div className="flex items-center gap-2 flex-wrap mb-4 p-3 bg-red-200/50 rounded-xl min-h-14">
         {selected.map((c, i) => (
           <div key={c.id} className="flex items-center gap-1">
             <div
@@ -157,15 +157,15 @@ export default function Creator() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="font-serif text-3xl text-stone-100 mb-2">✨ Créateur Artisanal</h1>
+        <h1 className="font-serif text-3xl text-yellow-700 mb-2">✨ Création artisanale</h1>
         <p className="text-stone-400">Composez votre création avec les cristaux qui vous correspondent.</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Formulaire */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5 space-y-4">
-            <h2 className="font-semibold text-stone-200">🎨 Votre création</h2>
+          <div className="bg-yellow-700/30 border border-yellow-700/30 rounded-2xl p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-700">🎨 Votre création</h2>
 
             {/* Type de création */}
             <div>
@@ -250,7 +250,7 @@ export default function Creator() {
             <button
               onClick={handleAI}
               disabled={aiLoading}
-              className="w-full py-2.5 rounded-xl font-medium text-sm border border-violet-500/30 text-violet-300 hover:bg-violet-500/10 transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl font-medium text-sm border border-yellow-700/30 text-yellow-700 hover:bg-violet-500/10 transition-all flex items-center justify-center gap-2"
             >
               {aiLoading ? '⏳ Génération...' : '🤖 Suggestion IA'}
             </button>
@@ -258,16 +258,16 @@ export default function Creator() {
 
           {/* Résultat IA */}
           {aiResult && (
-            <div className="bg-stone-900 border border-violet-800/30 rounded-2xl p-5 animate-slide-up">
-              <h3 className="font-semibold text-violet-300 mb-1">🤖 Recommandation IA</h3>
+            <div className="bg-yellow-700/30 border border-yellow-700/30 rounded-2xl p-5 animate-slide-up">
+              <h3 className="font-semibold text-yellow-700 mb-1">🤖 Recommandation IA</h3>
               <p className="text-xs text-stone-500 mb-3 italic">{aiResult.note}</p>
               <p className="text-sm text-stone-400 mb-3">{aiResult.message}</p>
               <div className="space-y-2">
                 {aiResult.suggestions.map((s, i) => (
-                  <div key={i} className="bg-stone-800 rounded-xl p-3">
+                  <div key={i} className="bg-yellow-700/20 rounded-xl p-3">
                     <p className="text-sm font-medium text-stone-200">{s.crystal}</p>
                     <p className="text-xs text-stone-400 mt-0.5">{s.reason}</p>
-                    <span className="text-xs text-violet-400">Énergie : {s.energyLevel}</span>
+                    <span className="text-xs text-text-yellow-900">Énergie : {s.energyLevel}</span>
                   </div>
                 ))}
               </div>

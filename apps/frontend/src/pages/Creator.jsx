@@ -1,111 +1,108 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import useCrystalStore from '../store/useCrystalStore';
 import { crystalApi } from '../services/api';
 
-// Couleurs disponibles pour la sélection
 const COLORS = [
   { label: 'Violet', value: 'violet', hex: '#9B59B6' },
-  { label: 'Rose', value: 'rose', hex: '#FFB6C1' },
-  { label: 'Bleu', value: 'bleu', hex: '#26619C' },
-  { label: 'Vert', value: 'vert', hex: '#4CAF50' },
-  { label: 'Jaune', value: 'jaune', hex: '#F7C948' },
+  { label: 'Rose',   value: 'rose',   hex: '#FFB6C1' },
+  { label: 'Bleu',   value: 'bleu',   hex: '#26619C' },
+  { label: 'Vert',   value: 'vert',   hex: '#4CAF50' },
+  { label: 'Jaune',  value: 'jaune',  hex: '#F7C948' },
   { label: 'Orange', value: 'orange', hex: '#FF8C00' },
-  { label: 'Rouge', value: 'rouge', hex: '#E74C3C' },
-  { label: 'Noir', value: 'noir', hex: '#2C2C2C' },
-  { label: 'Blanc', value: 'blanc', hex: '#F0F0F0' },
+  { label: 'Rouge',  value: 'rouge',  hex: '#E74C3C' },
+  { label: 'Noir',   value: 'noir',   hex: '#2C2C2C' },
+  { label: 'Blanc',  value: 'blanc',  hex: '#F0F0F0' },
   { label: 'Marron', value: 'marron', hex: '#C8860A' },
 ];
 
-// Objectifs prédéfinis courants
 const OBJECTIVES_PRESETS = [
   'Protection', 'Amour', 'Sérénité', 'Énergie', 'Méditation',
-  'Confiance', 'Intuition', 'Créativité', 'Ancrage', 'Guérison'
+  'Confiance', 'Intuition', 'Créativité', 'Ancrage', 'Guérison',
 ];
 
-function SelectedCrystalPreview({ selectedCrystals, crystals, onRemove }) {
-  if (selectedCrystals.length === 0) return null;
-
-  const selected = crystals.filter(c => selectedCrystals.includes(c.id));
-
-  // Vérifier les incompatibilités entre cristaux sélectionnés
-  const incompatibilities = [];
-  for (const c of selected) {
-    for (const inc of (c.incompatibleWith || [])) {
-      if (selectedCrystals.includes(inc.id)) {
-        const pair = [c.name, inc.name].sort().join(' + ');
-        if (!incompatibilities.includes(pair)) {
-          incompatibilities.push(pair);
-        }
-      }
-    }
-  }
-
+function SelectionCard({ crystal, isSelected, isAI, hasIncompat, onToggle }) {
   return (
-    <div className="bg-red-50 border border-stone-800 rounded-2xl p-5">
-      <h3 className="font-semibold text-yellow-800 mb-3">
-        Ma sélection ({selected.length} crista{selected.length > 1 ? 'ux' : 'l'})
-      </h3>
+    <div
+      onClick={onToggle}
+      style={{
+        background: isSelected ? 'rgba(192,120,64,0.05)' : 'var(--bg-card)',
+        border: `1.5px solid ${isSelected ? 'var(--copper)' : isAI ? 'rgba(192,120,64,0.4)' : 'var(--border)'}`,
+        borderRadius: '1rem', overflow: 'hidden',
+        cursor: 'pointer', transition: 'all 0.15s',
+        opacity: hasIncompat ? 0.4 : 1,
+        position: 'relative',
+      }}
+    >
+      {/* Image */}
+      <div style={{
+        height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: `radial-gradient(circle, ${crystal.color}33, ${crystal.color}11)`,
+        position: 'relative',
+      }}>
+        {crystal.imageUrl ? (
+          <img src={crystal.imageUrl} alt={crystal.name}
+            style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: '52px', height: '52px', borderRadius: '50%', backgroundColor: crystal.color, boxShadow: `0 0 22px ${crystal.color}66` }} />
+        )}
+        {/* Overlay sélection */}
+        {isSelected && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'rgba(192,120,64,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: '1.2rem', color: 'var(--copper)', filter: 'drop-shadow(0 0 4px rgba(192,120,64,0.6))' }}>✦</span>
+          </div>
+        )}
+        {/* Badges */}
+        <div style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-end' }}>
+          {isAI && !isSelected && (
+            <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--copper)', background: 'var(--bg-card)', border: '1px solid rgba(192,120,64,0.45)', borderRadius: '999px', padding: '0.08rem 0.38rem', fontFamily: "'Inter', sans-serif" }}>IA</span>
+          )}
+          {hasIncompat && (
+            <span style={{ fontSize: '0.65rem', color: '#A03020', background: 'rgba(255,255,255,0.9)', borderRadius: '999px', padding: '0.05rem 0.3rem' }}>△</span>
+          )}
+        </div>
+      </div>
 
-      {/* Aperçu visuel — ligne de perles */}
-      <div className="flex items-center gap-2 flex-wrap mb-4 p-3 bg-red-200/50 rounded-xl min-h-14">
-        {selected.map((c, i) => (
-          <div key={c.id} className="flex items-center gap-1">
-            <div
-              className="w-6 h-6 rounded-full border border-white/10 shadow-sm flex-shrink-0"
-              style={{ backgroundColor: c.color, boxShadow: `0 0 8px ${c.color}66` }}
-              title={c.name}
-            />
-            {i < selected.length - 1 && (
-              <div className="w-1 h-1 rounded-full bg-stone-600" />
+      {/* Infos */}
+      <div style={{ padding: '0.65rem 0.75rem 0.75rem' }}>
+        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '0.85rem', color: isSelected ? 'var(--copper)' : 'var(--text)', marginBottom: '0.3rem' }}>
+          {crystal.name}
+        </div>
+        {crystal.virtues?.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.22rem' }}>
+            {crystal.virtues.slice(0, 2).map(v => (
+              <span key={v} style={{ fontSize: '0.6rem', padding: '0.12rem 0.42rem', borderRadius: '999px', border: '1px solid var(--border)', color: 'var(--text-sec)', background: 'var(--bg)' }}>{v}</span>
+            ))}
+            {crystal.chakras?.[0] && (
+              <span style={{ fontSize: '0.6rem', padding: '0.12rem 0.42rem', borderRadius: '999px', fontWeight: 500, backgroundColor: crystal.chakras[0].color + '18', color: crystal.chakras[0].color, border: `1px solid ${crystal.chakras[0].color}30` }}>
+                ◯ {crystal.chakras[0].name}
+              </span>
             )}
           </div>
-        ))}
+        )}
       </div>
-
-      {/* Liste */}
-      <div className="space-y-2">
-        {selected.map(c => (
-          <div key={c.id} className="flex items-center justify-between bg-stone-800 rounded-xl px-3 py-2">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: c.color }} />
-              <span className="text-sm text-stone-200">{c.name}</span>
-            </div>
-            <button
-              onClick={() => onRemove(c.id)}
-              className="text-stone-500 hover:text-red-400 transition-colors text-xs"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Incompatibilités */}
-      {incompatibilities.length > 0 && (
-        <div className="mt-3 bg-red-900/20 border border-red-800/40 rounded-xl p-3">
-          <p className="text-xs font-semibold text-red-400 mb-1">⚠️ Incompatibilités détectées</p>
-          {incompatibilities.map(pair => (
-            <p key={pair} className="text-xs text-red-300/80">· {pair}</p>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
+const crBlock = { paddingTop: '1.75rem', paddingBottom: '1.75rem', borderBottom: '1px solid rgba(221,208,188,0.65)' };
+const crLbl = { display: 'block', fontSize: '0.62rem', fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.38rem' };
+const crInp = { width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '0.4rem 0.08rem', fontSize: '0.875rem', color: 'var(--text)', fontFamily: "'Inter', sans-serif", outline: 'none' };
+const crSel = { ...crInp, appearance: 'none', cursor: 'pointer' };
+const crTa = { width: '100%', background: 'rgba(237,224,208,0.28)', border: '1px solid var(--border)', borderRadius: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.875rem', color: 'var(--text)', fontFamily: "'Inter', sans-serif", outline: 'none', resize: 'none', lineHeight: 1.6 };
+
 export default function Creator() {
   const { creationTypes, fetchCreationTypes, crystals, fetchCrystals } = useCrystalStore();
-  const [form, setForm] = useState({
-    creationTypeId: '',
-    color: '',
-    objective: ''
-  });
+  const [form, setForm] = useState({ creationTypeId: '', color: '', objective: '' });
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCrystals, setSelectedCrystals] = useState([]);
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
 
   useEffect(() => {
     fetchCreationTypes();
@@ -116,252 +113,338 @@ export default function Creator() {
     if (!form.creationTypeId && !form.color && !form.objective) return;
     setLoading(true);
     try {
-      const results = await crystalApi.suggest({
-        color: form.color,
-        objective: form.objective,
-        creationTypeId: form.creationTypeId || undefined
-      });
+      const results = await crystalApi.suggest({ color: form.color, objective: form.objective, creationTypeId: form.creationTypeId || undefined });
       setSuggestions(results);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
   const handleAI = async () => {
     setAiLoading(true);
+    setAiError(null);
+    setAiResult(null);
     try {
       const result = await crystalApi.generate({
         creationType: creationTypes.find(t => t.id === Number(form.creationTypeId))?.name,
-        objective: form.objective
+        objective: form.objective,
+        color: form.color,
       });
       setAiResult(result);
     } catch (err) {
-      console.error(err);
+      setAiError(err.message || 'Une erreur est survenue');
     } finally {
       setAiLoading(false);
     }
   };
 
-  const toggleSelect = (id) => {
-    setSelectedCrystals(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
+  const toggleSelect = (id) => setSelectedCrystals(prev =>
+    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+  );
+
+  const addAllAI = () => {
+    if (!aiResult?.suggestions) return;
+    const newIds = aiResult.suggestions.map(s => s.crystalId).filter(id => !selectedCrystals.includes(id));
+    setSelectedCrystals(prev => [...prev, ...newIds]);
   };
 
-  // Cristaux affichés (suggestions si recherche effectuée, sinon tous)
+  const aiSuggestedIds = aiResult?.suggestions?.map(s => s.crystalId) || [];
   const displayed = suggestions.length > 0 ? suggestions : crystals;
+  const selectedFull = crystals.filter(c => selectedCrystals.includes(c.id));
+
+  const incompatibilities = [];
+  for (const c of selectedFull) {
+    for (const inc of (c.incompatibleWith || [])) {
+      if (selectedCrystals.includes(inc.id)) {
+        const pair = [c.name, inc.name].sort().join(' + ');
+        if (!incompatibilities.includes(pair)) incompatibilities.push(pair);
+      }
+    }
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl text-yellow-700 mb-2">✨ Création artisanale</h1>
-        <p className="text-stone-400">Composez votre création avec les cristaux qui vous correspondent.</p>
-      </div>
+      <div className="eyebrow mb-2">⟡ &nbsp; Atelier</div>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.85rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
+        Création artisanale
+      </h1>
+      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '1rem', color: 'var(--text-dim)', marginBottom: '2rem' }}>
+        Composez votre sélection de cristaux
+      </p>
+      <div className="divider-cel mb-6">✦ · · ✦ · · ✦</div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Formulaire */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-yellow-700/30 border border-yellow-700/30 rounded-2xl p-5 space-y-4">
-            <h2 className="font-semibold text-yellow-700">🎨 Votre création</h2>
+      {/* Ligne principale : formulaire | grille de cristaux */}
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2.5rem', alignItems: 'start' }}>
 
-            {/* Type de création */}
-            <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-wider block mb-1.5">
-                Type de création
-              </label>
-              <select
-                value={form.creationTypeId}
-                onChange={e => setForm(f => ({ ...f, creationTypeId: e.target.value }))}
-                className="input text-sm"
-              >
-                <option value="">Sélectionner...</option>
-                {creationTypes.map(t => (
-                  <option key={t.id} value={t.id}>{t.icon} {t.name}</option>
-                ))}
-              </select>
+        {/* Formulaire gauche */}
+        <div>
+          {/* Type */}
+          <div style={{ ...crBlock, paddingTop: 0 }}>
+            <div className="block-head">
+              <span className="block-sym">⟡</span>
+              <span className="block-ttl">Type de création</span>
+              <span className="block-line" />
             </div>
+            <label style={crLbl}>Création</label>
+            <select value={form.creationTypeId} onChange={e => setForm(f => ({ ...f, creationTypeId: e.target.value }))} style={crSel}>
+              <option value="">Sélectionner…</option>
+              {creationTypes.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
+            </select>
+          </div>
 
-            {/* Couleur dominante */}
-            <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-wider block mb-1.5">
-                Couleur dominante
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {COLORS.map(c => (
-                  <button
-                    key={c.value}
-                    onClick={() => setForm(f => ({ ...f, color: f.color === c.value ? '' : c.value }))}
-                    className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                      form.color === c.value ? 'border-white scale-110' : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.label}
-                  />
-                ))}
-              </div>
-              {form.color && (
-                <p className="text-xs text-stone-400 mt-1">
-                  Couleur : <span className="text-violet-300">{form.color}</span>
-                </p>
-              )}
+          {/* Couleur */}
+          <div style={crBlock}>
+            <div className="block-head">
+              <span className="block-sym">●</span>
+              <span className="block-ttl">Couleur dominante</span>
+              <span className="block-line" />
             </div>
-
-            {/* Objectif */}
-            <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-wider block mb-1.5">
-                Objectif / intention
-              </label>
-              <input
-                type="text"
-                value={form.objective}
-                onChange={e => setForm(f => ({ ...f, objective: e.target.value }))}
-                placeholder="Ex: protection, méditation..."
-                className="input text-sm mb-2"
-              />
-              <div className="flex flex-wrap gap-1.5">
-                {OBJECTIVES_PRESETS.map(obj => (
-                  <button
-                    key={obj}
-                    onClick={() => setForm(f => ({ ...f, objective: f.objective === obj ? '' : obj }))}
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
-                      form.objective === obj
-                        ? 'bg-violet-600/30 text-violet-300 border-violet-500/50'
-                        : 'bg-stone-800 text-stone-400 border-stone-700 hover:border-stone-500'
-                    }`}
-                  >
-                    {obj}
-                  </button>
-                ))}
-              </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+              {COLORS.map(c => (
+                <button
+                  key={c.value}
+                  onClick={() => setForm(f => ({ ...f, color: f.color === c.value ? '' : c.value }))}
+                  title={c.label}
+                  style={{
+                    width: '24px', height: '24px', borderRadius: '50%', cursor: 'pointer',
+                    border: form.color === c.value ? '2.5px solid var(--copper)' : '2px solid transparent',
+                    backgroundColor: c.hex, outline: 'none', transition: 'all 0.15s',
+                    transform: form.color === c.value ? 'scale(1.2)' : 'scale(1)',
+                  }}
+                />
+              ))}
             </div>
+          </div>
 
-            {/* Actions */}
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? '⏳ Recherche...' : '🔍 Trouver mes cristaux'}
+          {/* Intention */}
+          <div style={{ ...crBlock, borderBottom: 'none' }}>
+            <div className="block-head">
+              <span className="block-sym">∗</span>
+              <span className="block-ttl">Intention</span>
+              <span className="block-line" />
+            </div>
+            <label style={crLbl}>Objectif</label>
+            <textarea
+              style={crTa} rows={3}
+              placeholder="Ex : protection, sérénité, amour…"
+              value={form.objective}
+              onChange={e => setForm(f => ({ ...f, objective: e.target.value }))}
+            />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.75rem' }}>
+              {OBJECTIVES_PRESETS.map(obj => (
+                <button
+                  key={obj}
+                  onClick={() => setForm(f => ({ ...f, objective: f.objective === obj ? '' : obj }))}
+                  style={{
+                    fontSize: '0.68rem', padding: '0.2rem 0.62rem', borderRadius: '999px',
+                    cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                    border: form.objective === obj ? '1px solid var(--copper)' : '1px solid var(--border)',
+                    color: form.objective === obj ? 'var(--copper)' : 'var(--text-sec)',
+                    background: form.objective === obj ? 'rgba(192,120,64,0.08)' : 'transparent',
+                  }}
+                >
+                  {obj}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', paddingTop: '1.5rem' }}>
+            <button onClick={handleSearch} disabled={loading} className="btn-primary" style={{ justifyContent: 'center' }}>
+              {loading ? '· · ·' : '⊙ Trouver mes cristaux'}
             </button>
-
-            <button
-              onClick={handleAI}
-              disabled={aiLoading}
-              className="w-full py-2.5 rounded-xl font-medium text-sm border border-yellow-700/30 text-yellow-700 hover:bg-violet-500/10 transition-all flex items-center justify-center gap-2"
-            >
-              {aiLoading ? '⏳ Génération...' : '🤖 Suggestion IA'}
+            <button onClick={handleAI} disabled={aiLoading} className="btn-ghost" style={{ justifyContent: 'center' }}>
+              {aiLoading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: 'var(--amber)', letterSpacing: '0.2rem' }}>✦ · ✦</span>
+                  Gemini réfléchit…
+                </span>
+              ) : '✦ Suggestion IA'}
             </button>
           </div>
 
-          {/* Résultat IA */}
-          {aiResult && (
-            <div className="bg-yellow-700/30 border border-yellow-700/30 rounded-2xl p-5 animate-slide-up">
-              <h3 className="font-semibold text-yellow-700 mb-1">🤖 Recommandation IA</h3>
-              <p className="text-xs text-stone-500 mb-3 italic">{aiResult.note}</p>
-              <p className="text-sm text-stone-400 mb-3">{aiResult.message}</p>
-              <div className="space-y-2">
-                {aiResult.suggestions.map((s, i) => (
-                  <div key={i} className="bg-yellow-700/20 rounded-xl p-3">
-                    <p className="text-sm font-medium text-stone-200">{s.crystal}</p>
-                    <p className="text-xs text-stone-400 mt-0.5">{s.reason}</p>
-                    <span className="text-xs text-text-yellow-900">Énergie : {s.energyLevel}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Erreur IA */}
+          {aiError && (
+            <div style={{ marginTop: '1rem', background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.2)', borderRadius: '0.75rem', padding: '0.75rem 0.9rem' }}>
+              <p style={{ fontSize: '0.75rem', color: '#A03020' }}>△ {aiError}</p>
             </div>
           )}
 
-          {/* Sélection courante */}
-          <SelectedCrystalPreview
-            selectedCrystals={selectedCrystals}
-            crystals={crystals}
-            onRemove={toggleSelect}
-          />
+          {/* Résultat IA */}
+          {aiResult && (
+            <div style={{ marginTop: '1.25rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1rem 1.1rem' }}>
+              <div className="dsec-title" style={{ marginBottom: '0.5rem' }}><span>∗</span> Recommandation IA</div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-sec)', marginBottom: '0.85rem', lineHeight: 1.6 }}>{aiResult.message}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {aiResult.suggestions?.map((s, i) => {
+                  const isAdded = selectedCrystals.includes(s.crystalId);
+                  return (
+                    <div key={i} style={{
+                      background: isAdded ? 'rgba(192,120,64,0.06)' : 'var(--bg)',
+                      border: `1px solid ${isAdded ? 'rgba(192,120,64,0.35)' : 'transparent'}`,
+                      borderRadius: '0.75rem', padding: '0.55rem 0.65rem',
+                      display: 'flex', alignItems: 'flex-start', gap: '0.55rem',
+                      transition: 'all 0.15s',
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: '0.82rem', fontWeight: 500, color: 'var(--text)', fontFamily: "'Playfair Display', serif" }}>{s.crystalName}</p>
+                        <p style={{ fontSize: '0.71rem', color: 'var(--text-dim)', marginTop: '0.12rem', lineHeight: 1.5 }}>{s.reason}</p>
+                      </div>
+                      <button
+                        onClick={() => toggleSelect(s.crystalId)}
+                        title={isAdded ? 'Retirer de la sélection' : 'Ajouter à la sélection'}
+                        style={{
+                          flexShrink: 0, width: '24px', height: '24px', borderRadius: '50%',
+                          border: `1.5px solid ${isAdded ? 'var(--copper)' : 'rgba(192,120,64,0.5)'}`,
+                          background: isAdded ? 'var(--copper)' : 'transparent',
+                          color: isAdded ? '#fff' : 'var(--copper)',
+                          cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s', lineHeight: 1,
+                        }}
+                      >
+                        {isAdded ? '✓' : '+'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              {aiResult.suggestions?.length > 1 && (
+                <button
+                  onClick={addAllAI}
+                  disabled={aiResult.suggestions.every(s => selectedCrystals.includes(s.crystalId))}
+                  className="btn-secondary"
+                  style={{ marginTop: '0.85rem', width: '100%', justifyContent: 'center', fontSize: '0.75rem' }}
+                >
+                  Tout ajouter à la sélection
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Catalogue filtré */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-stone-500 text-sm">
+        {/* Grille de cristaux droite */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ color: 'var(--amber)' }}>✦</span>
               {suggestions.length > 0
-                ? `${suggestions.length} suggestion${suggestions.length > 1 ? 's' : ''} pour votre création`
-                : `${displayed.length} cristaux disponibles`}
-            </p>
+                ? `${suggestions.length} suggestion${suggestions.length > 1 ? 's' : ''}`
+                : `${crystals.length} cristaux disponibles`}
+            </div>
             {suggestions.length > 0 && (
-              <button
-                onClick={() => setSuggestions([])}
-                className="text-xs text-stone-400 hover:text-stone-200 underline"
-              >
+              <button onClick={() => setSuggestions([])} style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', fontFamily: "'Inter', sans-serif" }}>
                 Voir tous
               </button>
             )}
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <div className="animate-spin text-4xl">💎</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '12rem' }}>
+              <span style={{ color: 'var(--amber)', fontSize: '1.2rem', letterSpacing: '0.4rem' }}>✦ · · ✦</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {displayed.map(crystal => {
                 const isSelected = selectedCrystals.includes(crystal.id);
-                // Vérifier si ce cristal est incompatible avec un sélectionné
-                const hasIncompatibility = selectedCrystals.some(selId => {
-                  const selCrystal = crystals.find(c => c.id === selId);
-                  return selCrystal?.incompatibleWith?.some(inc => inc.id === crystal.id);
+                const isAI = aiSuggestedIds.includes(crystal.id);
+                const hasIncompat = selectedCrystals.some(selId => {
+                  const s = crystals.find(c => c.id === selId);
+                  return s?.incompatibleWith?.some(inc => inc.id === crystal.id);
                 });
-
                 return (
-                  <div
+                  <SelectionCard
                     key={crystal.id}
-                    onClick={() => toggleSelect(crystal.id)}
-                    className={`crystal-card relative cursor-pointer transition-all ${
-                      isSelected ? 'border-violet-500 ring-2 ring-violet-500/30' : ''
-                    } ${hasIncompatibility ? 'opacity-50' : ''}`}
-                  >
-                    {/* Sélection overlay */}
-                    {isSelected && (
-                      <div className="absolute top-2 left-2 z-10 bg-violet-600 text-white text-xs px-2 py-0.5 rounded-full">
-                        ✓ Sélectionné
-                      </div>
-                    )}
-                    {hasIncompatibility && (
-                      <div className="absolute top-2 left-2 z-10 bg-red-900 text-red-300 text-xs px-2 py-0.5 rounded-full">
-                        ⚠️ Incompatible
-                      </div>
-                    )}
-
-                    {/* Image */}
-                    <div
-                      className="h-32 flex items-center justify-center"
-                      style={{ background: `linear-gradient(135deg, ${crystal.color}33, ${crystal.color}11)` }}
-                    >
-                      <div
-                        className="w-12 h-12 rounded-full"
-                        style={{ backgroundColor: crystal.color, boxShadow: `0 0 20px ${crystal.color}66` }}
-                      />
-                    </div>
-
-                    {/* Infos */}
-                    <div className="p-3">
-                      <p className="font-medium text-stone-100 text-sm">{crystal.name}</p>
-                      {crystal.virtues?.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {crystal.virtues.slice(0, 2).map(v => (
-                            <span key={v} className="text-xs bg-stone-800 text-stone-400 px-1.5 py-0.5 rounded">
-                              {v}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    crystal={crystal}
+                    isSelected={isSelected}
+                    isAI={isAI}
+                    hasIncompat={hasIncompat}
+                    onToggle={() => toggleSelect(crystal.id)}
+                  />
                 );
               })}
             </div>
+          )}
+
+          {/* Ma sélection — sous la grille, visible dès qu'un cristal est sélectionné */}
+          {selectedFull.length > 0 && (
+          <div style={{ marginTop: '2rem' }}>
+            <div style={{
+              background: 'var(--bg-card)', border: '1.5px solid var(--border)',
+              borderRadius: '1.5rem', padding: '1.75rem 2rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
+                  <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.35rem', color: 'var(--text)' }}>
+                    ◇ Ma sélection
+                  </h2>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                    {selectedFull.length} cristal{selectedFull.length > 1 ? 'x' : ''}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelectedCrystals([])}
+                  style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', fontFamily: "'Inter', sans-serif" }}
+                >
+                  Tout effacer
+                </button>
+              </div>
+
+                  {/* Aperçu orbes */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    {selectedFull.map(c => (
+                      <div key={c.id} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c.color, boxShadow: `0 0 12px ${c.color}55`, flexShrink: 0 }} title={c.name} />
+                    ))}
+                  </div>
+
+                  {/* Grille des cristaux sélectionnés */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                    {selectedFull.map(crystal => (
+                      <div
+                        key={crystal.id}
+                        style={{
+                          background: 'var(--bg)', border: '1px solid rgba(192,120,64,0.3)',
+                          borderRadius: '0.875rem', overflow: 'hidden',
+                        }}
+                      >
+                        <div style={{
+                          height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: `radial-gradient(circle, ${crystal.color}33, ${crystal.color}11)`,
+                        }}>
+                          {crystal.imageUrl ? (
+                            <img src={crystal.imageUrl} alt={crystal.name}
+                              style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: crystal.color, boxShadow: `0 0 16px ${crystal.color}66` }} />
+                          )}
+                        </div>
+                        <div style={{ padding: '0.5rem 0.6rem 0.55rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '0.78rem', color: 'var(--text)' }}>{crystal.name}</span>
+                          <button
+                            onClick={() => toggleSelect(crystal.id)}
+                            title="Retirer"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: '0.65rem', padding: '0', lineHeight: 1, flexShrink: 0 }}
+                          >✕</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Incompatibilités */}
+                  {incompatibilities.length > 0 && (
+                    <div style={{ marginTop: '1.25rem', background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.2)', borderRadius: '0.875rem', padding: '0.85rem 1rem' }}>
+                      <p style={{ fontSize: '0.72rem', fontWeight: 600, color: '#A03020', marginBottom: '0.35rem' }}>△ Incompatibilités détectées</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                        {incompatibilities.map(pair => (
+                          <span key={pair} style={{ fontSize: '0.7rem', color: '#A03020', background: 'rgba(160,50,30,0.09)', borderRadius: '999px', padding: '0.15rem 0.65rem', border: '1px solid rgba(160,50,30,0.18)' }}>
+                            {pair}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+            </div>
+          </div>
           )}
         </div>
       </div>

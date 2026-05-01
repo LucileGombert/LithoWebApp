@@ -2,10 +2,10 @@ import { Link, useLocation } from 'react-router-dom';
 import useFavoritesStore from '../store/useFavoritesStore';
 
 const links = [
-  { to: '/', label: 'Bibliothèque', icon: '💎' },
-  { to: '/favorites', label: 'Favoris', icon: '❤️' },
-  { to: '/creator', label: 'Création artisanale', icon: '✨' },
-  { to: '/add-crystal', label: 'Ajouter', icon: '➕' },
+  { to: '/', label: 'Bibliothèque', sym: '✦' },
+  { to: '/favorites', label: 'Favoris', sym: '♡' },
+  { to: '/creator', label: 'Création artisanale', sym: '⟡' },
+  { to: '/add-crystal', label: 'Ajouter', sym: '✧' },
 ];
 
 export default function Navbar() {
@@ -13,42 +13,59 @@ export default function Navbar() {
   const { favorites } = useFavoritesStore();
 
   return (
-    <nav className="sticky top-0 z-50 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-serif text-xl text-stone-500 hover:text-violet-300 transition-colors">
-            <span className="text-2xl">🔮</span>
-            <span className="hidden sm:inline">LithoApp</span>
-          </Link>
+    <nav style={{
+      position: 'sticky', top: 0, zIndex: 50,
+      background: 'rgba(250,247,242,0.94)',
+      backdropFilter: 'blur(14px)',
+      borderBottom: '1px solid var(--border)',
+      height: '64px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 2rem',
+    }}>
+      <Link to="/" style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: '1.15rem', color: 'var(--text)',
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        textDecoration: 'none',
+      }}>
+        <span style={{ color: 'var(--copper)', fontSize: '1.15rem' }}>☽</span>
+        <span>LithoApp</span>
+      </Link>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-1">
-            {links.map(link => {
-              const isActive = location.pathname === link.to ||
-                (link.to !== '/' && location.pathname.startsWith(link.to));
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-violet-600/20 text-violet-300 border border-violet-500/30'
-                      : 'text-stone-400 hover:text-stone-200 hover:bg-sky-300'
-                  }`}
-                >
-                  <span>{link.icon}</span>
-                  <span className="hidden sm:inline">{link.label}</span>
-                  {link.to === '/favorites' && favorites.length > 0 && (
-                    <span className="bg-violet-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-                      {favorites.length}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+      <div style={{ display: 'flex', gap: '0.15rem' }}>
+        {links.map(link => {
+          const isActive = location.pathname === link.to ||
+            (link.to !== '/' && location.pathname.startsWith(link.to));
+          return (
+            <Link
+              key={link.to}
+              to={link.to}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                padding: '0.38rem 0.8rem', borderRadius: '999px',
+                fontSize: '0.8rem', fontWeight: 500,
+                textDecoration: 'none', whiteSpace: 'nowrap',
+                border: isActive ? '1px solid rgba(192,120,64,0.22)' : '1px solid transparent',
+                background: isActive ? 'rgba(192,120,64,0.11)' : 'transparent',
+                color: isActive ? 'var(--copper)' : 'var(--text-sec)',
+                transition: 'all 0.2s',
+              }}
+            >
+              <span style={{ fontSize: '0.85rem', opacity: 0.85 }}>{link.sym}</span>
+              <span className="hidden sm:inline">{link.label}</span>
+              {link.to === '/favorites' && favorites.length > 0 && (
+                <span style={{
+                  background: 'var(--copper)', color: '#fff',
+                  fontSize: '0.58rem', width: '15px', height: '15px',
+                  borderRadius: '50%', display: 'inline-flex',
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {favorites.length}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

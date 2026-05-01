@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LithoApp — Aperçu complet v3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    --bg:       #FAF7F2;
+    --bg-card:  #F5EDE0;
+    --bg-input: #EDE0D0;
+    --copper:   #C07840;
+    --amber:    #D4A355;
+    --ocre:     #E8C98A;
+    --text:     #3D2515;
+    --text-sec: #7A5C45;
+    --text-dim: #B09070;
+    --border:   #DDD0BC;
+    --sh:       rgba(192,120,64,0.09);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── FOND CÉLESTE ── */
+  .celestial-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .celestial-bg svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.14; }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(250,247,242,0.94); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    height: 64px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 2rem;
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+  .logo-sym { font-size: 1.2rem; color: var(--copper); }
+  .nav-links { display: flex; gap: 0.15rem; }
+  .nav-link {
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.38rem 0.8rem; border-radius: 999px;
+    font-size: 0.8rem; font-weight: 500; color: var(--text-sec);
+    cursor: pointer; border: 1px solid transparent; transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-link:hover { background: rgba(192,120,64,0.07); color: var(--text); }
+  .nav-link.active { background: rgba(192,120,64,0.11); color: var(--copper); border-color: rgba(192,120,64,0.22); }
+  .nav-sym { font-size: 0.85rem; opacity: 0.85; }
+  .nav-badge { background: var(--copper); color: #fff; font-size: 0.58rem; width: 15px; height: 15px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+
+  /* ── PAGES ── */
+  .page { display: none; position: relative; z-index: 1; min-height: calc(100vh - 64px); }
+  .page.active { display: block; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+  .container-sm { max-width: 680px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+  /* ── TYPOGRAPHIE ── */
+  .serif { font-family: 'Playfair Display', serif; font-weight: 400; }
+  .italic { font-family: 'Cormorant Garamond', serif; font-style: italic; }
+  .eyebrow { font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber); }
+  .dim { color: var(--text-dim); }
+  .sec { color: var(--text-sec); }
+
+  /* ── DIVIDER CÉLESTE ── */
+  .divider {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 1.5rem 0; color: var(--ocre); font-size: 0.62rem; letter-spacing: 0.12em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; }
+  .divider::before { background: linear-gradient(to right, transparent, var(--border)); }
+  .divider::after  { background: linear-gradient(to left,  transparent, var(--border)); }
+
+  /* ── CARTES CRISTAUX ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(192px, 1fr)); gap: 1.25rem; }
+  .crystal-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 1.25rem; overflow: hidden; cursor: pointer;
+    box-shadow: 0 2px 14px var(--sh); transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .crystal-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(192,120,64,0.15); }
+  .card-img { height: 138px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .card-orb { width: 58px; height: 58px; border-radius: 50%; }
+  .card-badge { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 0.63rem; padding: 0.14rem 0.48rem; border-radius: 999px; font-weight: 500; }
+  .b-ok  { background: rgba(192,120,64,0.13); color: var(--copper); border: 1px solid rgba(192,120,64,0.28); }
+  .b-low { background: rgba(180,130,20,0.12); color: #8B6914; border: 1px solid rgba(180,130,20,0.28); }
+  .b-out { background: rgba(160,50,30,0.09); color: #A03020; border: 1px solid rgba(160,50,30,0.22); }
+  .card-body { padding: 0.8rem 0.9rem 0.9rem; }
+  .card-name { font-family: 'Playfair Display', serif; font-size: 0.93rem; color: var(--text); margin-bottom: 0.35rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.28rem; margin-top: 0.32rem; }
+  .tag { font-size: 0.63rem; padding: 0.18rem 0.5rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text-sec); background: var(--bg); }
+  .chtag { font-size: 0.63rem; padding: 0.18rem 0.5rem; border-radius: 999px; font-weight: 500; }
+
+  /* ── SEARCH + FILTERS ── */
+  .search-bar {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px;
+    padding: 0.55rem 1.2rem; display: flex; align-items: center; gap: 0.55rem;
+    box-shadow: 0 2px 10px var(--sh); margin-bottom: 1.1rem;
+  }
+  .search-bar input { border: none; background: none; font-size: 0.85rem; color: var(--text); flex: 1; outline: none; font-family: 'Inter', sans-serif; }
+  .search-bar input::placeholder { color: var(--text-dim); }
+  .filter-bar { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .fchip { font-size: 0.73rem; padding: 0.32rem 0.85rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text-sec); background: var(--bg-card); cursor: pointer; transition: all 0.15s; }
+  .fchip.on { border-color: var(--copper); color: var(--copper); background: rgba(192,120,64,0.08); }
+
+  /* ── BOUTONS ── */
+  .btn { display: inline-flex; align-items: center; gap: 0.38rem; padding: 0.52rem 1.15rem; border-radius: 999px; font-size: 0.78rem; font-weight: 500; cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+  .btn-p  { background: var(--copper); color: #FFF8F0; box-shadow: 0 2px 12px rgba(192,120,64,0.27); }
+  .btn-p:hover { background: #A86530; }
+  .btn-s  { background: var(--bg-card); color: var(--text-sec); border: 1px solid var(--border); }
+  .btn-g  { background: transparent; color: var(--copper); border: 1px solid rgba(192,120,64,0.33); }
+  .btn-d  { background: rgba(160,50,30,0.07); color: #A03020; border: 1px solid rgba(160,50,30,0.2); }
+  .btn-fav { background: rgba(230,210,190,0.2); color: var(--text-sec); border: 1px solid var(--border); width: 100%; justify-content: center; padding: 0.62rem; border-radius: 0.875rem; margin: 0.7rem 0; }
+
+  /* ═══════════════════════════════════
+     PAGE DÉTAIL — style v1
+  ═══════════════════════════════════ */
+  .detail-2col { display: grid; grid-template-columns: 2fr 3fr; gap: 2rem; }
+  .detail-visual {
+    border-radius: 1.25rem; height: 255px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); position: relative; overflow: hidden;
+  }
+  .detail-star { position: absolute; color: var(--amber); opacity: 0.45; font-size: 0.72rem; }
+  .info-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 1.25rem; padding: 0.95rem 1.1rem; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 0.38rem 0; border-bottom: 1px solid rgba(221,208,188,0.45); font-size: 0.8rem; }
+  .info-row:last-child { border-bottom: none; }
+  .info-k { color: var(--text-dim); } .info-v { color: var(--text); font-weight: 500; }
+  .stock-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 1.25rem; padding: 0.95rem 1.1rem; }
+  .stock-title { font-size: 0.78rem; font-weight: 600; color: var(--text-sec); margin-bottom: 0.65rem; display: flex; align-items: center; gap: 0.4rem; }
+  .stock-row2 { display: flex; justify-content: space-between; padding: 0.32rem 0; border-bottom: 1px solid rgba(221,208,188,0.35); font-size: 0.78rem; }
+  .stock-row2:last-child { border-bottom: none; }
+  .dsec-title { font-size: 0.63rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.4rem; }
+  .dsec-title span { color: var(--amber); font-size: 0.7rem; }
+  .vbadge { font-size: 0.73rem; padding: 0.26rem 0.72rem; border-radius: 999px; background: rgba(212,163,85,0.13); color: var(--copper); border: 1px solid rgba(212,163,85,0.33); }
+  .cbadge { font-size: 0.73rem; padding: 0.26rem 0.72rem; border-radius: 999px; cursor: pointer; }
+
+  /* ═══════════════════════════════════
+     PAGE AJOUT — style aérien
+  ═══════════════════════════════════ */
+  .name-inp { width: 100%; background: transparent; border: none; border-bottom: 1.5px solid var(--border); padding: 0.5rem 0.25rem; font-family: 'Playfair Display', serif; font-size: 1.45rem; color: var(--text); text-align: center; outline: none; }
+  .name-inp::placeholder { color: var(--text-dim); font-style: italic; }
+
+  .modes-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+  .mtab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.22rem; padding: 0.82rem 0.5rem 0.7rem; background: none; border: none; cursor: pointer; color: var(--text-dim); font-family: 'Inter', sans-serif; position: relative; transition: color 0.2s; }
+  .mtab.on { color: var(--copper); }
+  .mtab.on::after { content: ''; position: absolute; bottom: -1px; left: 18%; right: 18%; height: 1.5px; background: var(--copper); border-radius: 2px; }
+  .mico { font-size: 0.95rem; } .mlbl { font-size: 0.73rem; font-weight: 500; } .msub { font-size: 0.6rem; opacity: 0.75; }
+
+  /* Blocs de section — séparés par l'espacement uniquement */
+  .ablock {
+    margin-bottom: 0;
+    padding: 2.25rem 0 2.25rem;
+    position: relative;
+  }
+  .ablock + .ablock {
+    padding-top: 2.5rem;
+  }
+  .ablock-sep {
+    text-align: center;
+    color: var(--amber);
+    font-size: 0.72rem;
+    letter-spacing: 0.6rem;
+    opacity: 0.75;
+    padding: 0.5rem 0;
+  }
+
+  /* Petite déco en tête de bloc */
+  .block-head { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1.4rem; }
+  .block-sym { font-size: 0.85rem; color: var(--amber); line-height: 1; }
+  .block-ttl { font-size: 0.63rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
+  .block-line { flex: 1; height: 1px; background: var(--border); opacity: 0.5; }
+
+  .afield { margin-bottom: 1.4rem; }
+  .afield:last-child { margin-bottom: 0; }
+  .albl { display: block; font-size: 0.63rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.35rem; }
+  .ainp { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 0.38rem 0.08rem; font-size: 0.875rem; color: var(--text); font-family: 'Inter', sans-serif; outline: none; }
+  .ainp::placeholder { color: var(--text-dim); font-style: italic; }
+  .ainp:focus { border-bottom-color: var(--copper); }
+  textarea.ainp { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.65rem 0.75rem; background: rgba(237,224,208,0.28); resize: none; line-height: 1.65; }
+  textarea.ainp:focus { border-color: var(--amber); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .img-prev { height: 68px; border-radius: 0.5rem; background: rgba(237,224,208,0.32); border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; color: var(--text-dim); margin-top: 0.45rem; letter-spacing: 0.04em; }
+
+  /* Atags */
+  .atag { font-size: 0.68rem; padding: 0.2rem 0.62rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text-sec); background: rgba(237,224,208,0.38); display: inline-flex; align-items: center; gap: 0.28rem; }
+  .atag-x { color: var(--text-dim); cursor: pointer; font-size: 0.62rem; }
+  .atag-add { font-size: 0.68rem; padding: 0.2rem 0.62rem; border-radius: 999px; border: 1px dashed var(--border); color: var(--text-dim); background: transparent; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+  /* Chips chakras colorés — contour couleur par défaut, remplissage pâle si sélectionné */
+  .chip { font-size: 0.68rem; padding: 0.26rem 0.72rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text-sec); background: transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+  /* Contours par chakra (état par défaut) */
+  .chip-racine   { border-color: rgba(204,51,51,0.38);  color: rgba(170,40,40,0.75); }
+  .chip-sacre    { border-color: rgba(204,112,0,0.38);  color: rgba(170,90,0,0.75); }
+  .chip-plexus   { border-color: rgba(184,144,10,0.38); color: rgba(150,115,8,0.75); }
+  .chip-coeur    { border-color: rgba(46,125,66,0.38);  color: rgba(38,105,55,0.75); }
+  .chip-gorge    { border-color: rgba(0,123,138,0.38);  color: rgba(0,100,112,0.75); }
+  .chip-3oeil    { border-color: rgba(42,60,158,0.38);  color: rgba(35,50,130,0.75); }
+  .chip-couronne { border-color: rgba(122,31,140,0.38); color: rgba(100,25,115,0.75); }
+  /* État sélectionné : contour plein + fond pâle */
+  .chip-racine.on   { border-color: #CC3333; color: #CC3333; background: rgba(204,51,51,0.09); }
+  .chip-sacre.on    { border-color: #CC7000; color: #CC7000; background: rgba(204,112,0,0.09); }
+  .chip-plexus.on   { border-color: #B8900A; color: #B8900A; background: rgba(184,144,10,0.1); }
+  .chip-coeur.on    { border-color: #2E7D42; color: #2E7D42; background: rgba(46,125,66,0.09); }
+  .chip-gorge.on    { border-color: #007B8A; color: #007B8A; background: rgba(0,123,138,0.09); }
+  .chip-3oeil.on    { border-color: #2A3C9E; color: #2A3C9E; background: rgba(42,60,158,0.09); }
+  .chip-couronne.on { border-color: #7A1F8C; color: #7A1F8C; background: rgba(122,31,140,0.09); }
+
+  /* Stock léger */
+  .stock-grid-a { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; }
+  .si { text-align: center; }
+  .si-lbl { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.28rem; }
+  .si-inp { width: 100%; text-align: center; background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 0.28rem; font-size: 1rem; color: var(--text); font-family: 'Playfair Display', serif; outline: none; }
+
+  /* Save btn */
+  .btn-save { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.82rem 2.8rem; background: var(--copper); color: #FFF8F0; border: none; border-radius: 999px; font-size: 0.875rem; font-weight: 500; font-family: 'Inter', sans-serif; cursor: pointer; box-shadow: 0 4px 22px rgba(192,120,64,0.24); letter-spacing: 0.04em; }
+  .btn-cancel { font-size: 0.76rem; color: var(--text-dim); background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border); }
+  .ornament { text-align: center; color: var(--ocre); font-size: 0.85rem; letter-spacing: 0.38rem; opacity: 0.52; margin-top: 2.5rem; }
+
+  /* ═══════════════════════════════════
+     PAGE CRÉATION ARTISANALE — aérien
+  ═══════════════════════════════════ */
+  .creator-layout { display: grid; grid-template-columns: 1fr 1.65fr; gap: 2.5rem; align-items: start; }
+  .creator-left {}
+  .cr-block {
+    padding: 1.75rem 0;
+    border-bottom: 1px solid rgba(221,208,188,0.65);
+  }
+  .cr-block:first-child { padding-top: 0; }
+  .cr-block:last-child { border-bottom: none; }
+  .cr-field { margin-bottom: 1.25rem; }
+  .cr-field:last-child { margin-bottom: 0; }
+  .cr-lbl { display: block; font-size: 0.62rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.38rem; }
+  .cr-sel { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 0.4rem 0.08rem; font-size: 0.875rem; color: var(--text); font-family: 'Inter', sans-serif; outline: none; appearance: none; cursor: pointer; }
+  .cr-sel:focus { border-bottom-color: var(--copper); }
+  .cr-inp { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 0.38rem 0.08rem; font-size: 0.875rem; color: var(--text); font-family: 'Inter', sans-serif; outline: none; }
+  .cr-inp::placeholder { color: var(--text-dim); font-style: italic; }
+  .cr-ta { width: 100%; background: rgba(237,224,208,0.28); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.6rem 0.75rem; font-size: 0.875rem; color: var(--text); font-family: 'Inter', sans-serif; outline: none; resize: none; line-height: 1.6; }
+  .cr-ta:focus { border-color: var(--amber); }
+  .cr-btns { display: flex; flex-direction: column; gap: 0.55rem; padding-top: 1.75rem; }
+  .cr-btn-main { display: flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.75rem; background: var(--copper); color: #FFF8F0; border: none; border-radius: 999px; font-size: 0.82rem; font-weight: 500; font-family: 'Inter', sans-serif; cursor: pointer; box-shadow: 0 3px 16px rgba(192,120,64,0.24); }
+  .cr-btn-sec  { display: flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.72rem; background: transparent; color: var(--copper); border: 1px solid rgba(192,120,64,0.32); border-radius: 999px; font-size: 0.82rem; font-weight: 500; font-family: 'Inter', sans-serif; cursor: pointer; }
+
+  /* Résultats création */
+  .cr-section-ttl { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .cr-section-ttl::after { content: ''; flex: 1; height: 1px; background: var(--border); opacity: 0.5; }
+  .result-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .rcard { background: var(--bg-card); border: 1px solid var(--border); border-radius: 1rem; padding: 0.78rem 0.9rem; display: flex; align-items: center; gap: 0.8rem; cursor: pointer; transition: all 0.15s; }
+  .rcard:hover { border-color: var(--amber); box-shadow: 0 2px 10px var(--sh); }
+  .rcard.sel { border-color: var(--copper); background: rgba(192,120,64,0.05); }
+  .rorb { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; }
+  .rname { font-family: 'Playfair Display', serif; font-size: 0.88rem; color: var(--text); }
+  .rdesc { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.08rem; }
+  .rcheck { margin-left: auto; color: var(--copper); font-size: 0.82rem; font-weight: 600; }
+
+  /* Favoris */
+  .fav-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.75rem; }
+</style>
+</head>
+<body>
+
+<!-- FOND CÉLESTE -->
+<div class="celestial-bg">
+  <svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" stroke="#C07840" stroke-width="0.8">
+      <line x1="80" y1="70" x2="80" y2="56"/><line x1="80" y1="70" x2="80" y2="84"/><line x1="80" y1="70" x2="66" y2="70"/><line x1="80" y1="70" x2="94" y2="70"/><circle cx="80" cy="70" r="1.5" fill="#C07840"/>
+      <line x1="320" y1="130" x2="320" y2="121"/><line x1="320" y1="130" x2="320" y2="139"/><line x1="320" y1="130" x2="311" y2="130"/><line x1="320" y1="130" x2="329" y2="130"/>
+      <line x1="1280" y1="80" x2="1280" y2="66"/><line x1="1280" y1="80" x2="1280" y2="94"/><line x1="1280" y1="80" x2="1266" y2="80"/><line x1="1280" y1="80" x2="1294" y2="80"/><circle cx="1280" cy="80" r="1.5" fill="#C07840"/>
+      <line x1="1100" y1="230" x2="1100" y2="223"/><line x1="1100" y1="230" x2="1100" y2="237"/><line x1="1100" y1="230" x2="1093" y2="230"/><line x1="1100" y1="230" x2="1107" y2="230"/>
+      <line x1="180" y1="380" x2="180" y2="373"/><line x1="180" y1="380" x2="180" y2="387"/><line x1="180" y1="380" x2="173" y2="380"/><line x1="180" y1="380" x2="187" y2="380"/><circle cx="180" cy="380" r="1" fill="#D4A355"/>
+      <line x1="1320" y1="500" x2="1320" y2="491"/><line x1="1320" y1="500" x2="1320" y2="509"/><line x1="1320" y1="500" x2="1311" y2="500"/><line x1="1320" y1="500" x2="1329" y2="500"/><circle cx="1320" cy="500" r="1.5" fill="#C07840"/>
+      <line x1="60" y1="620" x2="60" y2="613"/><line x1="60" y1="620" x2="60" y2="627"/><line x1="60" y1="620" x2="53" y2="620"/><line x1="60" y1="620" x2="67" y2="620"/>
+      <line x1="400" y1="800" x2="400" y2="791"/><line x1="400" y1="800" x2="400" y2="809"/><line x1="400" y1="800" x2="391" y2="800"/><line x1="400" y1="800" x2="409" y2="800"/><circle cx="400" cy="800" r="1" fill="#E8C98A"/>
+      <line x1="980" y1="820" x2="980" y2="811"/><line x1="980" y1="820" x2="980" y2="829"/><line x1="980" y1="820" x2="971" y2="820"/><line x1="980" y1="820" x2="989" y2="820"/><circle cx="980" cy="820" r="1.5" fill="#C07840"/>
+    </g>
+    <g fill="#D4A355" opacity="0.75">
+      <circle cx="200" cy="180" r="1.2"/><circle cx="500" cy="55" r="0.9"/><circle cx="780" cy="38" r="1.1"/>
+      <circle cx="1050" cy="128" r="0.8"/><circle cx="40" cy="450" r="1.2"/><circle cx="1380" cy="300" r="1"/>
+      <circle cx="270" cy="680" r="0.9"/><circle cx="860" cy="650" r="1.2"/><circle cx="550" cy="870" r="1"/>
+    </g>
+    <g transform="translate(105,820)" fill="none" stroke="#D4A355" stroke-width="0.7" opacity="0.55">
+      <path d="M 0 -24 A 24 24 0 1 1 0 24 A 16 16 0 1 0 0 -24 Z"/>
+    </g>
+    <g transform="translate(1340,175)" fill="none" stroke="#C07840" stroke-width="0.7" opacity="0.5">
+      <path d="M 0 -18 A 18 18 0 1 1 0 18 A 12 12 0 1 0 0 -18 Z"/>
+    </g>
+    <g transform="translate(700,450)" fill="none" stroke="#DDD0BC" stroke-width="0.4" opacity="0.38">
+      <circle r="200"/><circle r="140"/><circle r="90"/>
+    </g>
+    <g stroke="#DDD0BC" stroke-width="0.4" opacity="0.3">
+      <line x1="0" y1="0" x2="100" y2="100"/><line x1="1400" y1="0" x2="1300" y2="100"/>
+      <line x1="0" y1="900" x2="100" y2="800"/><line x1="1400" y1="900" x2="1300" y2="800"/>
+    </g>
+  </svg>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo" onclick="showPage('home')">
+    <span class="logo-sym">☽</span> LithoApp
+  </div>
+  <div class="nav-links">
+    <div class="nav-link active" id="nav-home" onclick="showPage('home')"><span class="nav-sym">✦</span> Bibliothèque</div>
+    <div class="nav-link" id="nav-fav" onclick="showPage('fav')"><span class="nav-sym">♡</span> Favoris <span class="nav-badge">2</span></div>
+    <div class="nav-link" id="nav-creator" onclick="showPage('creator')"><span class="nav-sym">⟡</span> Création artisanale</div>
+    <div class="nav-link" id="nav-add" onclick="showPage('add')"><span class="nav-sym">✧</span> Ajouter</div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     BIBLIOTHÈQUE
+══════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="container">
+    <div class="eyebrow" style="margin-bottom:1.5rem;">12 cristaux</div>
+    <div class="search-bar">
+      <span style="color:var(--text-dim);font-size:0.8rem;">⊙</span>
+      <input placeholder="Rechercher un cristal, une vertu…" />
+    </div>
+    <div class="filter-bar">
+      <span class="fchip on">Tous</span>
+      <span class="fchip">◯ Chakra Cœur</span>
+      <span class="fchip">● Violet</span>
+      <span class="fchip">☽ Bélier</span>
+      <span class="fchip">∗ Protection</span>
+    </div>
+    <div class="divider">✦ · · ✦ · · ✦</div>
+    <div class="grid">
+      <div class="crystal-card" onclick="showPage('detail')">
+        <div class="card-img" style="background:radial-gradient(circle,#9B59B633,#9B59B611);">
+          <div class="card-orb" style="background:#9B59B6;box-shadow:0 0 26px #9B59B666;"></div>
+          <span class="card-badge b-ok">24 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Améthyste</div>
+          <div class="tags"><span class="tag">Protection</span><span class="tag">Sérénité</span><span class="tag">+3</span></div>
+          <div class="tags"><span class="chtag" style="background:#8B00FF16;color:#6B00BB;border:1px solid #8B00FF30;">◯ Couronne</span></div>
+        </div>
+      </div>
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#E8899A33,#E8899A11);">
+          <div class="card-orb" style="background:#E8899A;box-shadow:0 0 26px #E8899A66;"></div>
+          <span class="card-badge b-out">Rupture</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Quartz Rose</div>
+          <div class="tags"><span class="tag">Amour</span><span class="tag">Douceur</span></div>
+          <div class="tags"><span class="chtag" style="background:#00CC5516;color:#2E7D52;border:1px solid #00CC5530;">◯ Cœur</span></div>
+        </div>
+      </div>
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#E8A02033,#E8A02011);">
+          <div class="card-orb" style="background:#E8A020;box-shadow:0 0 26px #E8A02066;"></div>
+          <span class="card-badge b-low">3 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Citrine</div>
+          <div class="tags"><span class="tag">Joie</span><span class="tag">Clarté</span><span class="tag">+2</span></div>
+          <div class="tags"><span class="chtag" style="background:#FFD70015;color:#8B6914;border:1px solid #FFD70030;">◯ Plexus Solaire</span></div>
+        </div>
+      </div>
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#2C4A9033,#2C4A9011);">
+          <div class="card-orb" style="background:#2C4A90;box-shadow:0 0 26px #2C4A9066;"></div>
+          <span class="card-badge b-ok">12 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Lapis Lazuli</div>
+          <div class="tags"><span class="tag">Sagesse</span><span class="tag">Vérité</span></div>
+          <div class="tags"><span class="chtag" style="background:#0000FF15;color:#00308F;border:1px solid #0000FF30;">◯ Troisième Œil</span></div>
+        </div>
+      </div>
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#70809033,#70809011);">
+          <div class="card-orb" style="background:#708090;box-shadow:0 0 26px #70809066;"></div>
+          <span class="card-badge b-ok">8 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Labradorite</div>
+          <div class="tags"><span class="tag">Intuition</span><span class="tag">Protection</span></div>
+          <div class="tags"><span class="chtag" style="background:#0000FF15;color:#00308F;border:1px solid #0000FF30;">◯ Troisième Œil</span></div>
+        </div>
+      </div>
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#2E8B5733,#2E8B5711);">
+          <div class="card-orb" style="background:#2E8B57;box-shadow:0 0 26px #2E8B5766;"></div>
+          <span class="card-badge b-low">1 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Malachite</div>
+          <div class="tags"><span class="tag">Transformation</span><span class="tag">+2</span></div>
+          <div class="tags"><span class="chtag" style="background:#00CC5516;color:#2E7D52;border:1px solid #00CC5530;">◯ Cœur</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     DÉTAIL CRISTAL (style v1)
+══════════════════════════════════════ -->
+<div class="page" id="page-detail">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <div style="font-size:0.76rem;color:var(--text-dim);">Bibliothèque / <span style="color:var(--text-sec);">Améthyste</span></div>
+      <div style="display:flex;gap:0.45rem;">
+        <button class="btn btn-s">Modifier</button>
+        <button class="btn btn-d">✕ Supprimer</button>
+      </div>
+    </div>
+    <div class="detail-2col">
+      <!-- Gauche -->
+      <div style="display:flex;flex-direction:column;gap:0.7rem;">
+        <div class="detail-visual" style="background:radial-gradient(circle,#9B59B644,#9B59B611);">
+          <span class="detail-star" style="top:1rem;left:1rem;">✦</span>
+          <div style="width:96px;height:96px;border-radius:50%;background:#9B59B6;box-shadow:0 0 58px #9B59B888;"></div>
+          <span class="detail-star" style="bottom:1rem;right:1rem;font-size:0.58rem;">✧</span>
+        </div>
+        <button class="btn btn-fav">♡ Ajouter aux favoris</button>
+        <div class="info-card">
+          <div class="info-row"><span class="info-k">⊹ Origine</span><span class="info-v">Brésil</span></div>
+          <div class="info-row"><span class="info-k">● Couleur</span><span class="info-v" style="display:flex;align-items:center;gap:0.35rem;"><span style="width:13px;height:13px;border-radius:50%;background:#9B59B6;display:inline-block;"></span></span></div>
+        </div>
+        <div class="stock-card">
+          <div class="stock-title"><span style="color:var(--amber);">◇</span> Stock</div>
+          <div class="stock-row2"><span style="color:var(--text-dim);">Perles cailloux</span><span style="color:var(--copper);font-weight:500;">8</span></div>
+          <div class="stock-row2"><span style="color:var(--text-dim);">Perles 4mm</span><span style="color:#A03020;font-weight:500;">0</span></div>
+          <div class="stock-row2"><span style="color:var(--text-dim);">Pierres roulées</span><span style="color:#8B6914;font-weight:500;">3</span></div>
+          <div class="stock-row2"><span style="color:var(--text-dim);">Pierres brutes</span><span style="color:var(--copper);font-weight:500;">13</span></div>
+        </div>
+      </div>
+      <!-- Droite -->
+      <div style="display:flex;flex-direction:column;gap:1.2rem;">
+        <div>
+          <h1 class="serif" style="font-size:2.1rem;color:var(--text);">Améthyste</h1>
+          <p style="color:var(--text-sec);line-height:1.72;font-size:0.875rem;margin-top:0.5rem;">Pierre de protection par excellence, l'améthyste apporte calme et sérénité. Elle favorise la clarté mentale et la connexion spirituelle profonde.</p>
+        </div>
+        <div class="divider" style="margin:0;">✦ · · ✦</div>
+        <div>
+          <div class="dsec-title"><span>∗</span> Vertus</div>
+          <div class="tags"><span class="vbadge">Protection</span><span class="vbadge">Sérénité</span><span class="vbadge">Clarté mentale</span><span class="vbadge">Intuition</span><span class="vbadge">Méditation</span></div>
+        </div>
+        <div>
+          <div class="dsec-title"><span>◯</span> Chakras associés</div>
+          <div class="tags">
+            <span class="cbadge" style="background:#8B00FF14;color:#6B00BB;border:1px solid #8B00FF2E;">◯ Couronne</span>
+            <span class="cbadge" style="background:#0000FF13;color:#00308F;border:1px solid #0000FF2E;">◯ Troisième Œil</span>
+          </div>
+        </div>
+        <div>
+          <div class="dsec-title"><span>☽</span> Signes associés</div>
+          <div class="tags"><span class="tag">♓ Poissons · Eau</span><span class="tag">♑ Capricorne · Terre</span></div>
+        </div>
+        <div>
+          <div class="dsec-title"><span>◌</span> Compatible avec</div>
+          <div class="tags">
+            <span class="tag" style="color:var(--copper);border-color:rgba(192,120,64,0.32);cursor:pointer;"><span style="width:7px;height:7px;border-radius:50%;background:#E8899A;display:inline-block;margin-right:0.18rem;"></span>Quartz Rose</span>
+            <span class="tag" style="color:var(--copper);border-color:rgba(192,120,64,0.32);cursor:pointer;"><span style="width:7px;height:7px;border-radius:50%;background:#2C4A90;display:inline-block;margin-right:0.18rem;"></span>Lapis Lazuli</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FAVORIS
+══════════════════════════════════════ -->
+<div class="page" id="page-fav">
+  <div class="container">
+    <div class="fav-header">
+      <h1 class="serif" style="font-size:1.8rem;">♡ Mes favoris</h1>
+      <span style="font-size:0.8rem;color:var(--text-dim);">2 cristaux</span>
+    </div>
+    <div class="divider">✦ · · ✦</div>
+    <div class="grid">
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#9B59B633,#9B59B611);">
+          <div class="card-orb" style="background:#9B59B6;box-shadow:0 0 26px #9B59B666;"></div>
+          <span class="card-badge b-ok">24 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Améthyste</div>
+          <div class="tags"><span class="tag">Protection</span><span class="tag">Sérénité</span></div>
+          <div class="tags"><span class="chtag" style="background:#8B00FF16;color:#6B00BB;border:1px solid #8B00FF30;">◯ Couronne</span></div>
+        </div>
+      </div>
+      <div class="crystal-card">
+        <div class="card-img" style="background:radial-gradient(circle,#E8A02033,#E8A02011);">
+          <div class="card-orb" style="background:#E8A020;box-shadow:0 0 26px #E8A02066;"></div>
+          <span class="card-badge b-low">3 en stock</span>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Citrine</div>
+          <div class="tags"><span class="tag">Joie</span><span class="tag">Clarté</span></div>
+          <div class="tags"><span class="chtag" style="background:#FFD70015;color:#8B6914;border:1px solid #FFD70030;">◯ Plexus Solaire</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CRÉATION ARTISANALE — style aérien
+══════════════════════════════════════ -->
+<div class="page" id="page-creator">
+  <div class="container">
+    <div class="eyebrow" style="margin-bottom:0.5rem;">⟡ &nbsp; Atelier</div>
+    <h1 class="serif" style="font-size:1.85rem;margin-bottom:0.3rem;">Création artisanale</h1>
+    <p class="italic" style="font-size:1rem;color:var(--text-dim);margin-bottom:2rem;">Composez votre sélection de cristaux</p>
+    <div class="divider">✦ · · ✦ · · ✦</div>
+
+    <div class="creator-layout">
+      <!-- Formulaire gauche -->
+      <div>
+        <div class="cr-block">
+          <div class="block-head"><span class="block-sym">⟡</span><span class="block-ttl">Type de création</span><span class="block-line"></span></div>
+          <div class="cr-field">
+            <label class="cr-lbl">Création</label>
+            <select class="cr-sel">
+              <option>💍 Bijoux</option><option>🔑 Porte-clé</option>
+              <option>🔖 Marque page</option><option>🕯️ Bougie</option>
+              <option>🪶 Décoration</option><option>✨ Elixir</option>
+            </select>
+          </div>
+        </div>
+        <div class="cr-block">
+          <div class="block-head"><span class="block-sym">●</span><span class="block-ttl">Couleur dominante</span><span class="block-line"></span></div>
+          <div class="cr-field">
+            <label class="cr-lbl">Couleur</label>
+            <input type="color" value="#9B59B6" style="height:38px;width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);cursor:pointer;padding:0;" />
+          </div>
+        </div>
+        <div class="cr-block">
+          <div class="block-head"><span class="block-sym">∗</span><span class="block-ttl">Intention</span><span class="block-line"></span></div>
+          <div class="cr-field">
+            <label class="cr-lbl">Objectif</label>
+            <textarea class="cr-ta" rows="3" placeholder="Ex : protection, sérénité, amour…">Protection et sérénité</textarea>
+          </div>
+        </div>
+        <div class="cr-btns">
+          <button class="cr-btn-main">⊙ Trouver mes cristaux</button>
+          <button class="cr-btn-sec">Suggestion IA</button>
+        </div>
+      </div>
+
+      <!-- Résultats droite -->
+      <div>
+        <div class="cr-section-ttl"><span style="color:var(--amber);">✦</span> Cristaux suggérés</div>
+        <div class="result-list">
+          <div class="rcard sel">
+            <div class="rorb" style="background:#9B59B6;box-shadow:0 0 14px #9B59B655;"></div>
+            <div><div class="rname">Améthyste</div><div class="rdesc">Protection · Sérénité · ◯ Couronne</div></div>
+            <span class="rcheck">✦</span>
+          </div>
+          <div class="rcard sel">
+            <div class="rorb" style="background:#708090;box-shadow:0 0 14px #70809055;"></div>
+            <div><div class="rname">Labradorite</div><div class="rdesc">Protection · Intuition · ◯ Troisième Œil</div></div>
+            <span class="rcheck">✦</span>
+          </div>
+          <div class="rcard">
+            <div class="rorb" style="background:#2C4A90;box-shadow:0 0 14px #2C4A9055;"></div>
+            <div><div class="rname">Lapis Lazuli</div><div class="rdesc">Sagesse · Vérité · ◯ Troisième Œil</div></div>
+          </div>
+          <div class="rcard">
+            <div class="rorb" style="background:#E8899A;box-shadow:0 0 14px #E8899A55;"></div>
+            <div><div class="rname">Quartz Rose</div><div class="rdesc">♡ Amour · Douceur · ◯ Cœur</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     AJOUTER UN CRISTAL — style aérien
+══════════════════════════════════════ -->
+<div class="page" id="page-add">
+  <div class="container-sm">
+    <div class="eyebrow" style="text-align:center;margin-bottom:0.55rem;">✦ &nbsp; Bibliothèque &nbsp; ✦</div>
+    <h1 class="serif" style="font-size:1.95rem;text-align:center;margin-bottom:0.4rem;">Ajouter un cristal</h1>
+    <p class="italic" style="font-size:1rem;color:var(--text-dim);text-align:center;margin-bottom:1.75rem;">Choisissez votre méthode de création</p>
+
+    <div class="modes-tabs">
+      <button class="mtab on"><span class="mico">✦</span><span class="mlbl">Automatique</span><span class="msub">Wikipedia + Gemini</span></button>
+      <button class="mtab"><span class="mico">⟡</span><span class="mlbl">Semi-automatique</span><span class="msub">Vos sources + Gemini</span></button>
+      <button class="mtab"><span class="mico">✐</span><span class="mlbl">Manuel</span><span class="msub">Saisie libre</span></button>
+    </div>
+
+    <div style="text-align:center;margin-bottom:0.5rem;margin-top:1.75rem;">
+      <input class="name-inp" placeholder="Nom du cristal…" value="Labradorite" />
+      <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.35rem;letter-spacing:0.04em;">Saisissez le nom du cristal avant de lancer la recherche</p>
+    </div>
+
+    <div class="divider" style="margin:1.5rem 0 0;">✦ · · ✦ · · ✦</div>
+
+    <!-- ◆ Identité -->
+    <div class="ablock">
+      <div class="block-head"><span class="block-sym">✦</span><span class="block-ttl">Identité</span><span class="block-line"></span></div>
+      <div class="two-col">
+        <div class="afield"><label class="albl">Couleur principale</label><input class="ainp" value="#708090" /></div>
+        <div class="afield"><label class="albl">Origine</label><input class="ainp" placeholder="Finlande, Madagascar…" value="Finlande" /></div>
+      </div>
+      <div class="afield"><label class="albl">Description</label><textarea class="ainp" rows="3">Pierre de transformation et de protection, la Labradorite révèle les dons cachés et renforce l'intuition profonde.</textarea></div>
+      <div class="afield"><label class="albl">Image — URL</label><input class="ainp" placeholder="https://…" /><div class="img-prev">aperçu de l'image</div></div>
+    </div>
+    <div class="ablock-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+    <!-- ◆ Vertus -->
+    <div class="ablock">
+      <div class="block-head"><span class="block-sym">☽</span><span class="block-ttl">Vertus &amp; Propriétés</span><span class="block-line"></span></div>
+      <div class="afield"><label class="albl">Vertus</label>
+        <div class="tags"><span class="atag">Protection <span class="atag-x">×</span></span><span class="atag">Intuition <span class="atag-x">×</span></span><span class="atag">Transformation <span class="atag-x">×</span></span><button class="atag-add">+ ajouter</button></div>
+      </div>
+      <div class="afield"><label class="albl">Propriétés générales</label>
+        <div class="tags"><span class="atag">Pierre de voyageur <span class="atag-x">×</span></span><button class="atag-add">+ ajouter</button></div>
+      </div>
+      <div class="afield"><label class="albl">Précautions</label>
+        <div class="tags"><button class="atag-add">+ ajouter</button></div>
+      </div>
+    </div>
+    <div class="ablock-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+    <!-- ◆ Énergies -->
+    <div class="ablock">
+      <div class="block-head"><span class="block-sym">◯</span><span class="block-ttl">Énergies</span><span class="block-line"></span></div>
+      <div class="afield"><label class="albl">Chakras associés</label>
+        <div class="tags">
+          <button class="chip chip-racine">Racine</button>
+          <button class="chip chip-sacre">Sacré</button>
+          <button class="chip chip-plexus">Plexus Solaire</button>
+          <button class="chip chip-coeur on">Cœur</button>
+          <button class="chip chip-gorge">Gorge</button>
+          <button class="chip chip-3oeil on">Troisième Œil</button>
+          <button class="chip chip-couronne">Couronne</button>
+        </div>
+      </div>
+      <div class="afield"><label class="albl">Signes du zodiaque</label>
+        <div class="tags">
+          <button class="chip">Bélier</button><button class="chip on">Taureau</button>
+          <button class="chip">Gémeaux</button><button class="chip">Cancer</button>
+          <button class="chip on">Lion</button><button class="chip">Vierge</button>
+          <button class="chip">Balance</button><button class="chip">Scorpion</button>
+          <button class="chip">Sagittaire</button><button class="chip">Capricorne</button>
+          <button class="chip">Verseau</button><button class="chip">Poissons</button>
+        </div>
+      </div>
+    </div>
+    <div class="ablock-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+    <!-- ◆ Stock -->
+    <div class="ablock">
+      <div class="block-head"><span class="block-sym">◇</span><span class="block-ttl">Stock initial</span><span class="block-line"></span></div>
+      <div class="stock-grid-a">
+        <div class="si"><div class="si-lbl">Perles cailloux</div><input class="si-inp" value="0" /></div>
+        <div class="si"><div class="si-lbl">Perles 2mm</div><input class="si-inp" value="0" /></div>
+        <div class="si"><div class="si-lbl">Perles 4mm</div><input class="si-inp" value="12" /></div>
+        <div class="si"><div class="si-lbl">Perles 6mm</div><input class="si-inp" value="0" /></div>
+        <div class="si"><div class="si-lbl">Pierres roulées</div><input class="si-inp" value="5" /></div>
+        <div class="si"><div class="si-lbl">Pierres brutes</div><input class="si-inp" value="0" /></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.9rem;margin-top:2.75rem;">
+      <button class="btn-save">✦ &nbsp; Enregistrer le cristal &nbsp; ✦</button>
+      <button class="btn-cancel">Annuler</button>
+    </div>
+    <div class="ornament">✦ · · · ✦ · · · ✦</div>
+  </div>
+</div>
+
+<script>
+  const pages = ['home','detail','fav','creator','add'];
+  function showPage(name) {
+    pages.forEach(p => {
+      document.getElementById('page-'+p).classList.remove('active');
+      const n = document.getElementById('nav-'+p);
+      if(n) n.classList.remove('active');
+    });
+    document.getElementById('page-'+name).classList.add('active');
+    const nav = document.getElementById('nav-'+name);
+    if(nav) nav.classList.add('active');
+    window.scrollTo(0,0);
+  }
+  // Chips toggle
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('on'));
+  });
+</script>
+</body>
+</html>

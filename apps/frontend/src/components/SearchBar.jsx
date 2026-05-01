@@ -5,7 +5,6 @@ export default function SearchBar() {
   const { filters, setFilter } = useCrystalStore();
   const debounceRef = useRef(null);
 
-  // Debounce pour éviter trop de requêtes
   const handleChange = useCallback((e) => {
     const value = e.target.value;
     clearTimeout(debounceRef.current);
@@ -15,16 +14,26 @@ export default function SearchBar() {
   }, [setFilter]);
 
   return (
-    <div className="relative">
-      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none">
-        🔍
-      </span>
+    <div style={{
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border)',
+      borderRadius: '999px',
+      padding: '0.55rem 1.2rem',
+      display: 'flex', alignItems: 'center', gap: '0.55rem',
+      boxShadow: '0 2px 10px var(--sh)',
+    }}>
+      <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>⊙</span>
       <input
         type="text"
-        placeholder="Rechercher un cristal, une vertu..."
+        placeholder="Rechercher un cristal, une vertu…"
         defaultValue={filters.search}
         onChange={handleChange}
-        className="input pl-10"
+        style={{
+          border: 'none', background: 'none',
+          fontSize: '0.85rem', color: 'var(--text)',
+          flex: 1, outline: 'none',
+          fontFamily: "'Inter', sans-serif",
+        }}
       />
     </div>
   );

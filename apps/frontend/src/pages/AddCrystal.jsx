@@ -2,279 +2,66 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { crystalApi, chakraApi, zodiacApi } from '../services/api';
 
-// ─── Valeurs par défaut du formulaire ───────────────────────────────────────
 const emptyForm = {
-  name: '',
-  color: '#8B5CF6',
-  imageUrl: '',
-  colors: [],
-  description: '',
-  virtues: [],
-  properties: [],
-  origin: '',
-  chakras: [],
-  zodiacSigns: [],
+  name: '', color: '#8B5CF6', imageUrl: '', colors: [], description: '',
+  virtues: [], properties: [], origin: '', chakras: [], zodiacSigns: [],
   precautions: [],
-  stock: {
-    perlesCailloux: 0,
-    perles2mm: 0,
-    perles4mm: 0,
-    perles6mm: 0,
-    pierresRoulees: 0,
-    pierresBrutes: 0,
-  },
+  stock: { perlesCailloux: 0, perles2mm: 0, perles4mm: 0, perles6mm: 0, pierresRoulees: 0, pierresBrutes: 0 },
 };
 
 const CHAKRA_NAMES = ['Racine', 'Sacré', 'Plexus Solaire', 'Cœur', 'Gorge', 'Troisième Œil', 'Couronne'];
 const ZODIAC_NAMES = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge', 'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons'];
 
-// ─── Composant tag éditable (liste de strings) ───────────────────────────────
-function TagInput({ label, values, onChange, placeholder }) {
-  const [input, setInput] = useState('');
+const CHAKRA_COLORS = {
+  'Racine':         { border: '#CC3333', bg: 'rgba(204,51,51,0.09)',   def: 'rgba(204,51,51,0.38)' },
+  'Sacré':          { border: '#CC7000', bg: 'rgba(204,112,0,0.09)',   def: 'rgba(204,112,0,0.38)' },
+  'Plexus Solaire': { border: '#B8900A', bg: 'rgba(184,144,10,0.10)',  def: 'rgba(184,144,10,0.38)' },
+  'Cœur':           { border: '#2E7D42', bg: 'rgba(46,125,66,0.09)',   def: 'rgba(46,125,66,0.38)' },
+  'Gorge':          { border: '#007B8A', bg: 'rgba(0,123,138,0.09)',   def: 'rgba(0,123,138,0.38)' },
+  'Troisième Œil':  { border: '#2A3C9E', bg: 'rgba(42,60,158,0.09)',   def: 'rgba(42,60,158,0.38)' },
+  'Couronne':       { border: '#7A1F8C', bg: 'rgba(122,31,140,0.09)',  def: 'rgba(122,31,140,0.38)' },
+};
 
-  function addTag() {
+function TagInput({ values, onChange, placeholder }) {
+  const [input, setInput] = useState('');
+  function add() {
     const v = input.trim();
     if (v && !values.includes(v)) onChange([...values, v]);
     setInput('');
   }
-
-  function removeTag(tag) {
-    onChange(values.filter(t => t !== tag));
-  }
-
   return (
-    <div>
-      <label className="block text-sm font-medium text-stone-300 mb-1">{label}</label>
-      <div className="flex flex-wrap gap-2 mb-2">
-        {values.map(tag => (
-          <span key={tag} className="flex items-center gap-1 bg-violet-600/20 text-violet-300 border border-violet-500/30 text-xs px-2 py-1 rounded-full">
-            {tag}
-            <button type="button" onClick={() => removeTag(tag)} className="text-violet-400 hover:text-red-400 ml-1">&times;</button>
-          </span>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-          placeholder={placeholder}
-          className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
-        />
-        <button type="button" onClick={addTag} className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded-lg text-sm transition-colors">
-          Ajouter
-        </button>
-      </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+      {values.map(tag => (
+        <span key={tag} className="atag">
+          {tag}
+          <button type="button" className="atag-x" onClick={() => onChange(values.filter(t => t !== tag))}>×</button>
+        </span>
+      ))}
+      <input
+        type="text" value={input} onChange={e => setInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+        placeholder={placeholder}
+        style={{ fontSize: '0.68rem', padding: '0.2rem 0.62rem', borderRadius: '999px', border: '1px dashed var(--border)', color: 'var(--text-dim)', background: 'transparent', outline: 'none', fontFamily: "'Inter', sans-serif", minWidth: '80px' }}
+        onBlur={add}
+      />
     </div>
   );
 }
 
-// ─── Sélecteur multi-choix (chakras / signes) ────────────────────────────────
-function MultiSelect({ label, options, selected, onChange }) {
-  function toggle(value) {
-    if (selected.includes(value)) {
-      onChange(selected.filter(v => v !== value));
-    } else {
-      onChange([...selected, value]);
-    }
-  }
+const STOCK_KEYS = [
+  { key: 'perlesCailloux', label: 'Perles cailloux' },
+  { key: 'perles2mm',      label: 'Perles 2mm' },
+  { key: 'perles4mm',      label: 'Perles 4mm' },
+  { key: 'perles6mm',      label: 'Perles 6mm' },
+  { key: 'pierresRoulees', label: 'Pierres roulées' },
+  { key: 'pierresBrutes',  label: 'Pierres brutes' },
+];
 
-  return (
-    <div>
-      <label className="block text-sm font-medium text-stone-300 mb-2">{label}</label>
-      <div className="flex flex-wrap gap-2">
-        {options.map(opt => {
-          const active = selected.includes(opt);
-          return (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => toggle(opt)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                active
-                  ? 'bg-violet-600/30 text-violet-300 border-violet-500'
-                  : 'bg-stone-800 text-stone-400 border-stone-700 hover:border-stone-500'
-              }`}
-            >
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+const ablock = { padding: '2.25rem 0' };
 
-// ─── Formulaire d'édition complet ────────────────────────────────────────────
-function CrystalForm({ form, onChange, chakras, zodiacs }) {
-  function field(key, value) {
-    onChange({ ...form, [key]: value });
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Nom + couleur */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Nom *</label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={e => field('name', e.target.value)}
-            className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
-            placeholder="Ex: Améthyste"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-stone-300 mb-1">Couleur principale *</label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={form.color}
-              onChange={e => field('color', e.target.value)}
-              className="h-10 w-16 rounded cursor-pointer bg-transparent border border-stone-700"
-            />
-            <input
-              type="text"
-              value={form.color}
-              onChange={e => field('color', e.target.value)}
-              className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 font-mono text-sm focus:outline-none focus:border-violet-500"
-              placeholder="#8B5CF6"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Image */}
-      <div>
-        <label className="block text-sm font-medium text-stone-300 mb-1">URL de l'image</label>
-        <div className="flex gap-3 items-start">
-          <div className="flex-1">
-            <input
-              type="url"
-              value={form.imageUrl}
-              onChange={e => field('imageUrl', e.target.value)}
-              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 text-sm focus:outline-none focus:border-violet-500"
-              placeholder="https://..."
-            />
-          </div>
-          {form.imageUrl && (
-            <img
-              src={form.imageUrl}
-              alt="Aperçu"
-              className="h-16 w-16 rounded-lg object-cover border border-stone-700 flex-shrink-0"
-              onError={e => { e.target.style.display = 'none'; }}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-stone-300 mb-1">Description</label>
-        <textarea
-          value={form.description}
-          onChange={e => field('description', e.target.value)}
-          rows={3}
-          className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500 resize-none"
-          placeholder="Décrivez les propriétés lithothérapeutiques du cristal..."
-        />
-      </div>
-
-      {/* Origine */}
-      <div>
-        <label className="block text-sm font-medium text-stone-300 mb-1">Origine</label>
-        <input
-          type="text"
-          value={form.origin}
-          onChange={e => field('origin', e.target.value)}
-          className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
-          placeholder="Ex: Brésil, Madagascar..."
-        />
-      </div>
-
-      {/* Couleurs */}
-      <TagInput
-        label="Couleurs (toutes les teintes)"
-        values={form.colors}
-        onChange={v => field('colors', v)}
-        placeholder="Ex: violet — puis Entrée"
-      />
-
-      {/* Vertus */}
-      <TagInput
-        label="Vertus / Bénéfices"
-        values={form.virtues}
-        onChange={v => field('virtues', v)}
-        placeholder="Ex: Protection — puis Entrée"
-      />
-
-      {/* Propriétés */}
-      <TagInput
-        label="Propriétés générales"
-        values={form.properties}
-        onChange={v => field('properties', v)}
-        placeholder="Ex: Pierre de méditation — puis Entrée"
-      />
-
-      {/* Précautions */}
-      <TagInput
-        label="Précautions d'usage"
-        values={form.precautions}
-        onChange={v => field('precautions', v)}
-        placeholder="Ex: Sensible à l'eau — puis Entrée"
-      />
-
-      {/* Chakras */}
-      <MultiSelect
-        label="Chakras associés"
-        options={chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES}
-        selected={form.chakras}
-        onChange={v => field('chakras', v)}
-      />
-
-      {/* Signes zodiaque */}
-      <MultiSelect
-        label="Signes du zodiaque"
-        options={zodiacs.length ? zodiacs.map(z => z.name) : ZODIAC_NAMES}
-        selected={form.zodiacSigns}
-        onChange={v => field('zodiacSigns', v)}
-      />
-
-      {/* Stock */}
-      <div>
-        <label className="block text-sm font-medium text-stone-300 mb-3">Stock initial</label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[
-            { key: 'perlesCailloux', label: 'Perles cailloux' },
-            { key: 'perles2mm', label: 'Perles 2mm' },
-            { key: 'perles4mm', label: 'Perles 4mm' },
-            { key: 'perles6mm', label: 'Perles 6mm' },
-            { key: 'pierresRoulees', label: 'Pierres roulées' },
-            { key: 'pierresBrutes', label: 'Pierres brutes' },
-          ].map(({ key, label }) => (
-            <div key={key}>
-              <label className="block text-xs text-stone-500 mb-1">{label}</label>
-              <input
-                type="number"
-                min="0"
-                value={form.stock[key]}
-                onChange={e => field('stock', { ...form.stock, [key]: parseInt(e.target.value) || 0 })}
-                className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 text-sm focus:outline-none focus:border-violet-500"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page principale ──────────────────────────────────────────────────────────
 export default function AddCrystal() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState('auto'); // 'auto' | 'semi-auto' | 'manual'
+  const [mode, setMode] = useState('auto');
   const [crystalName, setCrystalName] = useState('');
   const [sourceUrls, setSourceUrls] = useState(['', '']);
   const [form, setForm] = useState(emptyForm);
@@ -290,310 +77,288 @@ export default function AddCrystal() {
     zodiacApi.getAll().then(setZodiacs).catch(() => {});
   }, []);
 
-  // ── Recherche IA ──────────────────────────────────────────────────────────
+  function field(key, value) { setForm(f => ({ ...f, [key]: value })); }
+
   async function handleResearch() {
-    if (!crystalName.trim()) {
-      setError('Veuillez saisir le nom du cristal.');
-      return;
-    }
-    setError('');
-    setLoading(true);
+    if (!crystalName.trim()) { setError('Veuillez saisir le nom du cristal.'); return; }
+    setError(''); setLoading(true);
     try {
       const urls = sourceUrls.filter(u => u.trim());
-      const data = await crystalApi.research({
-        name: crystalName.trim(),
-        mode,
-        urls: mode === 'semi-auto' ? urls : undefined,
-      });
-
+      const data = await crystalApi.research({ name: crystalName.trim(), mode, urls: mode === 'semi-auto' ? urls : undefined });
       setForm({
-        name: data.name ?? crystalName,
-        color: data.color ?? '#8B5CF6',
-        imageUrl: data.imageUrl ?? '',
-        colors: data.colors ?? [],
-        description: data.description ?? '',
-        virtues: data.virtues ?? [],
-        properties: data.properties ?? [],
-        hardness: data.hardness ?? '',
-        origin: data.origin ?? '',
-        chakras: data.chakras ?? [],
-        zodiacSigns: data.zodiacSigns ?? [],
+        name: data.name ?? crystalName, color: data.color ?? '#8B5CF6',
+        imageUrl: data.imageUrl ?? '', colors: data.colors ?? [],
+        description: data.description ?? '', virtues: data.virtues ?? [],
+        properties: data.properties ?? [], origin: data.origin ?? '',
+        chakras: data.chakras ?? [], zodiacSigns: data.zodiacSigns ?? [],
         precautions: data.precautions ?? [],
+        stock: { perlesCailloux: 0, perles2mm: 0, perles4mm: 0, perles6mm: 0, pierresRoulees: 0, pierresBrutes: 0 },
       });
       setShowForm(true);
-    } catch (err) {
-      setError(err.message || 'Erreur lors de la recherche. Réessayez.');
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message || 'Erreur lors de la recherche.'); }
+    finally { setLoading(false); }
   }
 
-  // ── Passage en mode manuel ────────────────────────────────────────────────
-  function handleManual() {
-    setForm({ ...emptyForm, name: crystalName });
-    setShowForm(true);
-    setError('');
-  }
+  function handleManual() { setForm({ ...emptyForm, name: crystalName }); setShowForm(true); setError(''); }
 
-  // ── Sauvegarde en base ────────────────────────────────────────────────────
   async function handleSave() {
-    if (!form.name.trim()) {
-      setError('Le nom du cristal est requis.');
-      return;
-    }
-    if (!form.color) {
-      setError('La couleur principale est requise.');
-      return;
-    }
-    setSaving(true);
-    setError('');
+    if (!form.name.trim()) { setError('Le nom du cristal est requis.'); return; }
+    if (!form.color) { setError('La couleur principale est requise.'); return; }
+    setSaving(true); setError('');
     try {
-      // Résoudre les noms de chakras/zodiacs en IDs
-      const chakraIds = chakras
-        .filter(c => form.chakras.includes(c.name))
-        .map(c => c.id);
-      const zodiacIds = zodiacs
-        .filter(z => form.zodiacSigns.includes(z.name))
-        .map(z => z.id);
-
-      const payload = {
-        name: form.name.trim(),
-        color: form.color,
-        imageUrl: form.imageUrl || null,
-        colors: form.colors,
-        description: form.description,
-        virtues: form.virtues,
-        properties: form.properties,
-        hardness: form.hardness ? parseFloat(form.hardness) : null,
-        origin: form.origin || null,
-        chakraIds,
-        zodiacIds,
-        precautions: form.precautions,
-        stock: form.stock,
-      };
-
-      const created = await crystalApi.create(payload);
+      const chakraIds = chakras.filter(c => form.chakras.includes(c.name)).map(c => c.id);
+      const zodiacIds = zodiacs.filter(z => form.zodiacSigns.includes(z.name)).map(z => z.id);
+      const created = await crystalApi.create({
+        name: form.name.trim(), color: form.color, imageUrl: form.imageUrl || null,
+        colors: form.colors, description: form.description, virtues: form.virtues,
+        properties: form.properties, hardness: null, origin: form.origin || null,
+        chakraIds, zodiacIds, precautions: form.precautions, stock: form.stock,
+      });
       navigate(`/crystals/${created.id}`);
-    } catch (err) {
-      setError(err.message || 'Erreur lors de la sauvegarde.');
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(err.message || 'Erreur lors de la sauvegarde.'); }
+    finally { setSaving(false); }
   }
 
-  // ── Gestion des URLs (mode semi-auto) ─────────────────────────────────────
-  function updateUrl(index, value) {
-    setSourceUrls(prev => prev.map((u, i) => (i === index ? value : u)));
-  }
+  function updateUrl(i, v) { setSourceUrls(prev => prev.map((u, j) => j === i ? v : u)); }
+  function addUrl() { setSourceUrls(prev => [...prev, '']); }
+  function removeUrl(i) { setSourceUrls(prev => prev.filter((_, j) => j !== i)); }
 
-  function addUrl() {
-    setSourceUrls(prev => [...prev, '']);
-  }
+  const chakraOpts = chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES;
+  const zodiacOpts = zodiacs.length ? zodiacs.map(z => z.name) : ZODIAC_NAMES;
 
-  function removeUrl(index) {
-    setSourceUrls(prev => prev.filter((_, i) => i !== index));
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  const modes = [
-    { key: 'auto', label: 'Automatique', icon: '✨', desc: 'Wikipedia + Gemini AI' },
-    { key: 'semi-auto', label: 'Semi-automatique', icon: '🔗', desc: 'Tes sources + Gemini AI' },
-    { key: 'manual', label: 'Manuel', icon: '✏️', desc: 'Saisie manuelle' },
-  ];
+  const tabStyle = (key) => ({
+    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.22rem',
+    padding: '0.82rem 0.5rem 0.7rem', background: 'none', border: 'none', cursor: 'pointer',
+    color: mode === key ? 'var(--copper)' : 'var(--text-dim)',
+    fontFamily: "'Inter', sans-serif", position: 'relative',
+    borderBottom: mode === key ? '1.5px solid var(--copper)' : '1px solid var(--border)',
+  });
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div style={{ maxWidth: '680px', margin: '0 auto', padding: '3rem 1.5rem 6rem' }}>
       {/* En-tête */}
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl text-stone-100 mb-1">Ajouter un cristal</h1>
-        <p className="text-stone-400 text-sm">Créez une nouvelle fiche dans la bibliothèque</p>
-      </div>
+      <div className="eyebrow" style={{ textAlign: 'center', marginBottom: '0.55rem' }}>✦ &nbsp; Bibliothèque &nbsp; ✦</div>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.95rem', color: 'var(--text)', textAlign: 'center', marginBottom: '0.4rem' }}>
+        Ajouter un cristal
+      </h1>
+      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '1rem', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '1.75rem' }}>
+        Choisissez votre méthode de création
+      </p>
 
-      {/* Nom du cristal */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-stone-300 mb-2">
-          Nom du cristal
-        </label>
-        <input
-          type="text"
-          value={crystalName}
-          onChange={e => {
-            setCrystalName(e.target.value);
-            if (showForm) setForm(f => ({ ...f, name: e.target.value }));
-          }}
-          placeholder="Ex: Labradorite, Citrine, Obsidienne..."
-          className="w-full bg-stone-900 border border-stone-700 rounded-xl px-4 py-3 text-lg text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-colors"
-        />
-      </div>
-
-      {/* Sélection du mode */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {modes.map(m => (
-          <button
-            key={m.key}
-            type="button"
-            onClick={() => { setMode(m.key); setShowForm(m.key === 'manual'); setError(''); }}
-            className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border text-center transition-all ${
-              mode === m.key
-                ? 'bg-violet-600/20 border-violet-500 text-violet-300'
-                : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-stone-500 hover:text-stone-200'
-            }`}
-          >
-            <span className="text-2xl">{m.icon}</span>
-            <span className="font-medium text-sm">{m.label}</span>
-            <span className="text-xs opacity-70">{m.desc}</span>
+      {/* Onglets de mode */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '0' }}>
+        {[
+          { key: 'auto',      ico: '✦', lbl: 'Automatique',      sub: 'Wikipedia + Gemini' },
+          { key: 'semi-auto', ico: '⟡', lbl: 'Semi-automatique', sub: 'Vos sources + Gemini' },
+          { key: 'manual',    ico: '✐', lbl: 'Manuel',            sub: 'Saisie libre' },
+        ].map(m => (
+          <button key={m.key} style={tabStyle(m.key)}
+            onClick={() => { setMode(m.key); setShowForm(m.key === 'manual'); setError(''); }}>
+            <span style={{ fontSize: '0.95rem' }}>{m.ico}</span>
+            <span style={{ fontSize: '0.73rem', fontWeight: 500 }}>{m.lbl}</span>
+            <span style={{ fontSize: '0.6rem', opacity: 0.75 }}>{m.sub}</span>
           </button>
         ))}
       </div>
 
-      {/* Zone spécifique au mode */}
-      {mode === 'auto' && !showForm && (
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 mb-6">
-          <p className="text-stone-400 text-sm mb-4">
-            L'IA va rechercher des informations sur ce cristal via <strong className="text-stone-200">Wikipedia</strong>, puis les structurer avec <strong className="text-stone-200">Gemini Flash</strong>.
-          </p>
-          <button
-            type="button"
-            onClick={handleResearch}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
-          >
-            {loading ? (
-              <>
-                <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                Recherche en cours...
-              </>
-            ) : (
-              <>✨ Lancer la recherche automatique</>
-            )}
-          </button>
-        </div>
-      )}
+      {/* Nom du cristal */}
+      <div style={{ textAlign: 'center', margin: '1.75rem 0 0.5rem' }}>
+        <input
+          value={crystalName}
+          onChange={e => { setCrystalName(e.target.value); if (showForm) field('name', e.target.value); }}
+          placeholder="Nom du cristal…"
+          style={{
+            width: '100%', background: 'transparent', border: 'none',
+            borderBottom: '1.5px solid var(--border)', padding: '0.5rem 0.25rem',
+            fontFamily: "'Playfair Display', serif", fontSize: '1.45rem',
+            color: 'var(--text)', textAlign: 'center', outline: 'none',
+          }}
+        />
+        <p style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '0.35rem', letterSpacing: '0.04em' }}>
+          Saisissez le nom du cristal avant de lancer la recherche
+        </p>
+      </div>
 
-      {mode === 'semi-auto' && !showForm && (
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 mb-6 space-y-4">
-          <p className="text-stone-400 text-sm">
-            Colle les liens des pages sources à utiliser. Gemini analysera et croisera leur contenu.
-          </p>
-          {sourceUrls.map((url, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                type="url"
-                value={url}
-                onChange={e => updateUrl(i, e.target.value)}
-                placeholder={`https://exemple.com/cristal-${i + 1}`}
-                className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
-              />
-              {sourceUrls.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeUrl(i)}
-                  className="px-3 py-2 text-stone-500 hover:text-red-400 bg-stone-800 rounded-lg transition-colors"
-                  title="Supprimer"
-                >
-                  ✕
+      {/* Zone d'action (avant la saisie du formulaire) */}
+      {!showForm && (
+        <div style={{ margin: '1.5rem 0' }}>
+          {mode === 'auto' && (
+            <button type="button" onClick={handleResearch} disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
+              {loading ? <><span style={{ display: 'inline-block', width: '14px', height: '14px', border: '2px solid #FFF8F0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> Recherche en cours…</> : '⊙ Lancer la recherche automatique'}
+            </button>
+          )}
+          {mode === 'semi-auto' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Collez les liens des pages sources à analyser</p>
+              {sourceUrls.map((url, i) => (
+                <div key={i} style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input type="url" value={url} onChange={e => updateUrl(i, e.target.value)}
+                    placeholder={`https://exemple.com/cristal-${i + 1}`} className="field-inp" style={{ flex: 1 }} />
+                  {sourceUrls.length > 1 && (
+                    <button type="button" onClick={() => removeUrl(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: '0.8rem' }}>✕</button>
+                  )}
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button type="button" onClick={addUrl} className="btn-secondary" style={{ fontSize: '0.75rem' }}>+ Ajouter une source</button>
+                <button type="button" onClick={handleResearch} disabled={loading} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
+                  {loading ? '· · ·' : '⟡ Analyser les sources'}
                 </button>
-              )}
+              </div>
             </div>
-          ))}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={addUrl}
-              className="flex items-center gap-1 px-3 py-2 text-sm text-stone-400 hover:text-stone-200 bg-stone-800 hover:bg-stone-700 rounded-lg transition-colors"
-            >
-              + Ajouter une source
+          )}
+          {mode === 'manual' && (
+            <button type="button" onClick={handleManual} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
+              ✐ Ouvrir le formulaire
             </button>
-            <button
-              type="button"
-              onClick={handleResearch}
-              disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              {loading ? (
-                <>
-                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                  Analyse en cours...
-                </>
-              ) : (
-                <>🔗 Analyser les sources</>
-              )}
-            </button>
-          </div>
+          )}
         </div>
       )}
 
-      {mode === 'manual' && !showForm && (
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 mb-6">
-          <p className="text-stone-400 text-sm mb-4">
-            Remplissez toutes les informations manuellement dans le formulaire.
-          </p>
-          <button
-            type="button"
-            onClick={handleManual}
-            className="w-full px-4 py-3 bg-stone-700 hover:bg-stone-600 text-stone-100 rounded-xl font-medium transition-colors"
-          >
-            ✏️ Ouvrir le formulaire
-          </button>
-        </div>
-      )}
-
-      {/* Message d'erreur */}
       {error && (
-        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+        <div style={{ margin: '1rem 0', padding: '0.75rem 1rem', background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.22)', borderRadius: '0.75rem', color: '#A03020', fontSize: '0.875rem' }}>
           {error}
         </div>
       )}
 
-      {/* Formulaire d'édition */}
+      {/* Formulaire aérien */}
       {showForm && (
         <>
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-stone-100 font-medium">
-                {mode === 'manual' ? 'Remplissez les informations' : 'Vérifiez et modifiez si nécessaire'}
-              </h2>
-              <button
-                type="button"
-                onClick={() => { setShowForm(false); setError(''); }}
-                className="text-stone-500 hover:text-stone-300 text-sm transition-colors"
-              >
-                ← Retour
-              </button>
+          <div className="divider-cel" style={{ margin: '1.5rem 0 0' }}>✦ · · ✦ · · ✦</div>
+
+          {/* ◆ Identité */}
+          <div style={ablock}>
+            <div className="block-head"><span className="block-sym">✦</span><span className="block-ttl">Identité</span><span className="block-line" /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.4rem' }}>
+              <div>
+                <label className="field-lbl">Couleur principale</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <input type="color" value={form.color} onChange={e => field('color', e.target.value)}
+                    style={{ height: '32px', width: '44px', borderRadius: '0.375rem', cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)' }} />
+                  <input type="text" value={form.color} onChange={e => field('color', e.target.value)} className="field-inp" style={{ flex: 1 }} />
+                </div>
+              </div>
+              <div>
+                <label className="field-lbl">Origine</label>
+                <input type="text" value={form.origin} onChange={e => field('origin', e.target.value)} placeholder="Finlande, Madagascar…" className="field-inp" />
+              </div>
             </div>
-            <CrystalForm
-              form={form}
-              onChange={setForm}
-              chakras={chakras}
-              zodiacs={zodiacs}
-            />
+            <div style={{ marginBottom: '1.4rem' }}>
+              <label className="field-lbl">Description</label>
+              <textarea value={form.description} onChange={e => field('description', e.target.value)} rows={3} className="field-area" placeholder="Décrivez les propriétés lithothérapeutiques du cristal…" />
+            </div>
+            <div>
+              <label className="field-lbl">Image — URL</label>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <input type="url" value={form.imageUrl} onChange={e => field('imageUrl', e.target.value)} placeholder="https://…" className="field-inp" style={{ flex: 1 }} />
+                {form.imageUrl && (
+                  <img src={form.imageUrl} alt="Aperçu" style={{ height: '52px', width: '52px', borderRadius: '0.5rem', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
+                    onError={e => { e.target.style.display = 'none'; }} />
+                )}
+              </div>
+              {!form.imageUrl && (
+                <div style={{ height: '52px', borderRadius: '0.5rem', background: 'rgba(237,224,208,0.32)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '0.45rem', letterSpacing: '0.04em' }}>
+                  aperçu de l'image
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Bouton de sauvegarde */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white rounded-xl font-medium text-base transition-colors"
-            >
-              {saving ? (
-                <>
-                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>💾 Enregistrer le cristal</>
-              )}
+          <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+          {/* ◆ Vertus */}
+          <div style={ablock}>
+            <div className="block-head"><span className="block-sym">☽</span><span className="block-ttl">Vertus &amp; Propriétés</span><span className="block-line" /></div>
+            <div style={{ marginBottom: '1.4rem' }}>
+              <label className="field-lbl">Vertus</label>
+              <TagInput values={form.virtues} onChange={v => field('virtues', v)} placeholder="+ vertu" />
+            </div>
+            <div style={{ marginBottom: '1.4rem' }}>
+              <label className="field-lbl">Propriétés générales</label>
+              <TagInput values={form.properties} onChange={v => field('properties', v)} placeholder="+ propriété" />
+            </div>
+            <div>
+              <label className="field-lbl">Précautions</label>
+              <TagInput values={form.precautions} onChange={v => field('precautions', v)} placeholder="+ précaution" />
+            </div>
+          </div>
+
+          <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+          {/* ◆ Énergies */}
+          <div style={ablock}>
+            <div className="block-head"><span className="block-sym">◯</span><span className="block-ttl">Énergies</span><span className="block-line" /></div>
+            <div style={{ marginBottom: '1.4rem' }}>
+              <label className="field-lbl">Chakras associés</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
+                {chakraOpts.map(opt => {
+                  const on = form.chakras.includes(opt);
+                  const c = CHAKRA_COLORS[opt] || {};
+                  return (
+                    <button key={opt} type="button"
+                      onClick={() => field('chakras', on ? form.chakras.filter(x => x !== opt) : [...form.chakras, opt])}
+                      style={{
+                        fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+                        cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                        border: on ? `1px solid ${c.border}` : `1px solid ${c.def || 'var(--border)'}`,
+                        color: on ? c.border : (c.def ? c.border + 'CC' : 'var(--text-sec)'),
+                        background: on ? c.bg : 'transparent',
+                      }}
+                    >{opt}</button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <label className="field-lbl">Signes du zodiaque</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
+                {zodiacOpts.map(opt => {
+                  const on = form.zodiacSigns.includes(opt);
+                  return (
+                    <button key={opt} type="button"
+                      onClick={() => field('zodiacSigns', on ? form.zodiacSigns.filter(x => x !== opt) : [...form.zodiacSigns, opt])}
+                      style={{
+                        fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+                        cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                        border: on ? '1px solid var(--copper)' : '1px solid var(--border)',
+                        color: on ? 'var(--copper)' : 'var(--text-sec)',
+                        background: on ? 'rgba(192,120,64,0.08)' : 'transparent',
+                      }}
+                    >{opt}</button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+          {/* ◆ Stock */}
+          <div style={ablock}>
+            <div className="block-head"><span className="block-sym">◇</span><span className="block-ttl">Stock initial</span><span className="block-line" /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.2rem' }}>
+              {STOCK_KEYS.map(({ key, label }) => (
+                <div key={key} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.28rem' }}>{label}</div>
+                  <input type="number" min="0" value={form.stock[key]}
+                    onChange={e => field('stock', { ...form.stock, [key]: parseInt(e.target.value) || 0 })}
+                    style={{ width: '100%', textAlign: 'center', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '0.28rem', fontSize: '1rem', color: 'var(--text)', fontFamily: "'Playfair Display', serif", outline: 'none' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Boutons */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.9rem', marginTop: '2.75rem' }}>
+            <button type="button" onClick={handleSave} disabled={saving} className="btn-save">
+              {saving ? '· · ·' : '✦  Enregistrer le cristal  ✦'}
             </button>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="px-6 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl font-medium transition-colors"
-            >
+            <button type="button" onClick={() => navigate('/')} style={{ fontSize: '0.76rem', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'var(--border)', fontFamily: "'Inter', sans-serif" }}>
               Annuler
             </button>
           </div>
+
+          <div style={{ textAlign: 'center', color: 'var(--ocre)', fontSize: '0.85rem', letterSpacing: '0.38rem', opacity: 0.52, marginTop: '2.5rem' }}>✦ · · · ✦ · · · ✦</div>
         </>
       )}
     </div>

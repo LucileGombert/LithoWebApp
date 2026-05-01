@@ -15,60 +15,51 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl text-stone-100 mb-2">
-          Bibliothèque de Cristaux
-        </h1>
-        <p className="text-stone-400">
-          Découvrez les propriétés énergétiques et thérapeutiques de chaque pierre.
-        </p>
+      {!loading && !error && (
+        <div className="eyebrow mb-5">
+          {crystals.length} cristal{crystals.length !== 1 ? 'x' : ''}
+        </div>
+      )}
+
+      <div className="mb-4">
+        <SearchBar />
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar filtres */}
-        <aside className="lg:w-72 flex-shrink-0">
-          <div className="space-y-4 sticky top-24">
-            <SearchBar />
-            <FilterBar />
-          </div>
-        </aside>
-
-        {/* Grille cristaux */}
-        <main className="flex-1">
-          {loading && (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin text-4xl">💎</div>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-400">
-              ⚠️ {error}
-            </div>
-          )}
-
-          {!loading && !error && (
-            <>
-              <p className="text-stone-500 text-sm mb-4">
-                {crystals.length} cristal{crystals.length !== 1 ? 's' : ''} trouvé{crystals.length !== 1 ? 's' : ''}
-              </p>
-              {crystals.length === 0 ? (
-                <div className="text-center py-16 text-stone-500">
-                  <div className="text-5xl mb-4">🔍</div>
-                  <p>Aucun cristal ne correspond à votre recherche</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {crystals.map(crystal => (
-                    <CrystalCard key={crystal.id} crystal={crystal} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </main>
+      <div className="mb-6">
+        <FilterBar />
       </div>
+
+      <div className="divider-cel mb-6">✦ · · ✦ · · ✦</div>
+
+      {loading && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
+          <span style={{ color: 'var(--amber)', fontSize: '1.2rem', letterSpacing: '0.4rem' }}>✦ · · ✦</span>
+        </div>
+      )}
+
+      {error && (
+        <div style={{
+          background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.22)',
+          borderRadius: '1rem', padding: '1rem', color: '#A03020', fontSize: '0.875rem',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && crystals.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-dim)' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem', color: 'var(--ocre)' }}>◇</div>
+          <p>Aucun cristal ne correspond à votre recherche</p>
+        </div>
+      )}
+
+      {!loading && !error && crystals.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+          {crystals.map(crystal => (
+            <CrystalCard key={crystal.id} crystal={crystal} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

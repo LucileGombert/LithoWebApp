@@ -1,52 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg:       #FAF7F2;
+  --bg-card:  #F5EDE0;
+  --bg-input: #EDE0D0;
+  --copper:   #C07840;
+  --amber:    #D4A355;
+  --ocre:     #E8C98A;
+  --text:     #3D2515;
+  --text-sec: #7A5C45;
+  --text-dim: #B09070;
+  --border:   #DDD0BC;
+  --sh:       rgba(192,120,64,0.09);
+}
 
 @layer base {
   body {
-    @apply bg-red-200 text-stone-100 font-sans antialiased;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    @apply antialiased;
   }
-
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-stone-900;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-stone-600 rounded-full;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-stone-500;
-  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #EDE0D0; }
+  ::-webkit-scrollbar-thumb { background: var(--copper); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #A86530; }
 }
 
 @layer components {
-  .crystal-card {
-    @apply bg-red-50 border border-red-200 rounded-2xl overflow-hidden
-           transition-all duration-300 hover:border-red-300 hover:shadow-xl
-           hover:shadow-red-100/50 hover:-translate-y-1 cursor-pointer;
-  }
-
+  /* ─── Buttons ─── */
   .btn-primary {
-    @apply bg-violet-600 hover:bg-violet-500 text-white font-medium
-           px-4 py-2 rounded-xl transition-colors duration-200;
+    @apply inline-flex items-center gap-1.5 font-medium cursor-pointer transition-all duration-200;
+    padding: 0.52rem 1.3rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    background: var(--copper);
+    color: #FFF8F0;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 2px 14px rgba(192,120,64,0.26);
   }
+  .btn-primary:hover:not(:disabled) { background: #A86530; }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 
   .btn-secondary {
-    @apply bg-stone-800 hover:bg-violet-700 text-stone-200 font-medium
-           px-4 py-2 rounded-xl transition-colors duration-200 border border-stone-700;
+    @apply inline-flex items-center gap-1.5 font-medium cursor-pointer transition-all duration-200;
+    padding: 0.52rem 1.3rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    background: var(--bg-card);
+    color: var(--text-sec);
+    border: 1px solid var(--border);
+    font-family: 'Inter', sans-serif;
   }
+  .btn-secondary:hover { background: var(--bg-input); }
 
+  .btn-ghost {
+    @apply inline-flex items-center gap-1.5 font-medium cursor-pointer transition-all duration-200;
+    padding: 0.52rem 1.3rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    background: transparent;
+    color: var(--copper);
+    border: 1px solid rgba(192,120,64,0.33);
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-ghost:hover { background: rgba(192,120,64,0.07); }
+
+  .btn-danger {
+    @apply inline-flex items-center gap-1.5 font-medium cursor-pointer transition-all duration-200;
+    padding: 0.52rem 1.3rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    background: rgba(160,50,30,0.07);
+    color: #A03020;
+    border: 1px solid rgba(160,50,30,0.22);
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-danger:hover { background: rgba(160,50,30,0.13); }
+
+  .btn-save {
+    @apply inline-flex items-center justify-center gap-2 font-medium cursor-pointer transition-all duration-200;
+    padding: 0.82rem 2.8rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    background: var(--copper);
+    color: #FFF8F0;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.04em;
+    box-shadow: 0 4px 22px rgba(192,120,64,0.24);
+  }
+  .btn-save:hover:not(:disabled) { background: #A86530; }
+  .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ─── Badges ─── */
   .badge {
     @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium;
   }
+  .vbadge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    background: rgba(212,163,85,0.13);
+    color: var(--copper);
+    border: 1px solid rgba(212,163,85,0.33);
+  }
 
+  /* ─── Crystal card ─── */
+  .crystal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    @apply rounded-2xl overflow-hidden cursor-pointer transition-all duration-200;
+    box-shadow: 0 2px 14px var(--sh);
+  }
+  .crystal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(192,120,64,0.15);
+  }
+
+  /* ─── Info / Stock cards (Detail) ─── */
+  .info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    @apply rounded-2xl p-4;
+  }
+  .info-row {
+    @apply flex justify-between items-center py-1.5 text-sm;
+    border-bottom: 1px solid rgba(221,208,188,0.45);
+  }
+  .info-row:last-child { border-bottom: none; }
+
+  /* ─── Divider céleste ─── */
+  .divider-cel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--ocre);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    margin: 1.5rem 0;
+  }
+  .divider-cel::before, .divider-cel::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+  }
+  .divider-cel::before { background: linear-gradient(to right, transparent, var(--border)); }
+  .divider-cel::after  { background: linear-gradient(to left,  transparent, var(--border)); }
+
+  /* ─── Block separator ornament ─── */
+  .block-sep {
+    text-align: center;
+    color: var(--amber);
+    font-size: 0.72rem;
+    letter-spacing: 0.6rem;
+    opacity: 0.75;
+    padding: 0.5rem 0;
+  }
+
+  /* ─── Section head ─── */
+  .block-head { @apply flex items-center gap-2.5 mb-5; }
+  .block-sym { font-size: 0.85rem; color: var(--amber); }
+  .block-ttl {
+    font-size: 0.63rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .block-line { flex: 1; height: 1px; background: var(--border); opacity: 0.5; }
+
+  /* ─── Form fields (underline style) ─── */
+  .field-lbl {
+    display: block;
+    font-size: 0.63rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.35rem;
+  }
+  .field-inp {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 0.38rem 0.08rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field-inp:focus { border-bottom-color: var(--copper); }
+  .field-inp::placeholder { color: var(--text-dim); font-style: italic; }
+
+  .field-area {
+    width: 100%;
+    background: rgba(237,224,208,0.28);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    resize: none;
+    line-height: 1.65;
+    transition: border-color 0.15s;
+  }
+  .field-area:focus { border-color: var(--amber); }
+  .field-area::placeholder { color: var(--text-dim); font-style: italic; }
+
+  /* ─── Input générique ─── */
   .input {
-    @apply bg-violet-800 border border-stone-700 rounded-xl px-4 py-2.5 text-stone-100
-           placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-violet-500
-           focus:border-transparent transition-all duration-200 w-full;
-  } 
+    width: 100%;
+    background: rgba(237,224,208,0.35);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input:focus { border-color: var(--copper); }
+  .input::placeholder { color: var(--text-dim); }
+
+  /* ─── Tags (formulaire ajout) ─── */
+  .atag {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-sec);
+    background: rgba(237,224,208,0.38);
+    @apply inline-flex items-center gap-1.5;
+  }
+  .atag-x { color: var(--text-dim); cursor: pointer; font-size: 0.62rem; }
+  .atag-add {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.62rem;
+    border-radius: 999px;
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+  .atag-add:hover { border-color: var(--copper); color: var(--copper); }
+
+  /* ─── Eyebrow ─── */
+  .eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  /* ─── Section title (detail) ─── */
+  .dsec-title {
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.45rem;
+    @apply flex items-center gap-1.5;
+  }
+  .dsec-title span { color: var(--amber); font-size: 0.7rem; }
 }

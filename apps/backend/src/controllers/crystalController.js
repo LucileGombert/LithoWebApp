@@ -1,5 +1,6 @@
 const crystalService = require('../services/crystalService');
 const researchService = require('../services/researchService');
+const aiService = require('../services/aiService');
 
 /**
  * GET /api/crystals
@@ -163,39 +164,22 @@ async function researchCrystal(req, res) {
 
 /**
  * POST /api/crystals/generate
- * Endpoint IA simulé (MVP)
+ * Suggestion IA via Gemini — recommande des cristaux de la BDD
  */
 async function generateWithAI(req, res) {
   try {
-    const { objective, creationType, mood } = req.body;
-
-    // Simulation d'une réponse IA pour le MVP
-    const suggestions = [
-      {
-        crystal: 'Améthyste',
-        reason: `Idéale pour ${objective || 'la paix intérieure'} - favorise la clarté mentale et la sérénité`,
-        energyLevel: 'haute'
-      },
-      {
-        crystal: 'Quartz Rose',
-        reason: 'Apporte amour et douceur, parfait pour équilibrer les émotions',
-        energyLevel: 'douce'
-      },
-      {
-        crystal: 'Lapis Lazuli',
-        reason: 'Stimule la sagesse et la communication, excellent pour la méditation',
-        energyLevel: 'moyenne'
-      }
-    ];
-
-    res.json({
-      suggestions,
-      message: `Sélection IA pour "${creationType || 'votre création'}" axée sur ${objective || 'le bien-être'}`,
-      note: 'Réponse simulée - intégration IA complète à venir'
-    });
+    const { objective, creationType, color } = req.body;
+    const result = await aiService.generateCrystalSelection({ objective, creationType, color });
+    res.json(result);
   } catch (err) {
     console.error('generateWithAI error:', err);
-    res.status(500).json({ error: 'Erreur lors de la génération IA' });
+    let message = err.message || 'Erreur lors de la génération IA';
+    if (message.includes('429') || message.includes('quota')) {
+      message = 'Quota Gemini dépassé. Réessayez dans quelques instants.';
+    } else if (message.includes('403') || message.includes('API key')) {
+      message = 'Clé API Gemini invalide. Vérifiez votre configuration.';
+    }
+    res.status(500).json({ error: message });
   }
 }
 

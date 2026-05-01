@@ -6,104 +6,94 @@ import { crystalApi, chakraApi, zodiacApi } from '../services/api';
 
 const STOCK_CATEGORIES = [
   { key: 'perlesCailloux', label: 'Perles Cailloux' },
-  { key: 'perles2mm', label: 'Perles 2mm' },
-  { key: 'perles4mm', label: 'Perles 4mm' },
-  { key: 'perles6mm', label: 'Perles 6mm' },
+  { key: 'perles2mm',      label: 'Perles 2mm' },
+  { key: 'perles4mm',      label: 'Perles 4mm' },
+  { key: 'perles6mm',      label: 'Perles 6mm' },
   { key: 'pierresRoulees', label: 'Pierres Roulées' },
-  { key: 'pierresBrutes', label: 'Pierres Brutes' },
+  { key: 'pierresBrutes',  label: 'Pierres Brutes' },
 ];
 
 const CHAKRA_NAMES = ['Racine', 'Sacré', 'Plexus Solaire', 'Cœur', 'Gorge', 'Troisième Œil', 'Couronne'];
 const ZODIAC_NAMES = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge', 'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons'];
 
-// ─── Composants réutilisables pour le formulaire d'édition ────────────────────
+const CHAKRA_COLORS = {
+  'Racine':         { border: '#CC3333', bg: 'rgba(204,51,51,0.09)' },
+  'Sacré':          { border: '#CC7000', bg: 'rgba(204,112,0,0.09)' },
+  'Plexus Solaire': { border: '#B8900A', bg: 'rgba(184,144,10,0.10)' },
+  'Cœur':           { border: '#2E7D42', bg: 'rgba(46,125,66,0.09)' },
+  'Gorge':          { border: '#007B8A', bg: 'rgba(0,123,138,0.09)' },
+  'Troisième Œil':  { border: '#2A3C9E', bg: 'rgba(42,60,158,0.09)' },
+  'Couronne':       { border: '#7A1F8C', bg: 'rgba(122,31,140,0.09)' },
+};
 
 function TagInput({ label, values, onChange, placeholder }) {
   const [input, setInput] = useState('');
-
-  function addTag() {
+  function add() {
     const v = input.trim();
     if (v && !values.includes(v)) onChange([...values, v]);
     setInput('');
   }
-
   return (
-    <div>
-      <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">{label}</label>
-      <div className="flex flex-wrap gap-2 mb-2">
+    <div style={{ marginBottom: '1.1rem' }}>
+      <label className="field-lbl">{label}</label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
         {values.map(tag => (
-          <span key={tag} className="flex items-center gap-1 bg-violet-600/20 text-violet-300 border border-violet-500/30 text-xs px-2 py-1 rounded-full">
+          <span key={tag} className="atag">
             {tag}
-            <button type="button" onClick={() => onChange(values.filter(t => t !== tag))} className="hover:text-red-400 ml-0.5">&times;</button>
+            <button type="button" className="atag-x" onClick={() => onChange(values.filter(t => t !== tag))}>×</button>
           </span>
         ))}
       </div>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-          placeholder={placeholder}
-          className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-1.5 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500"
-        />
-        <button type="button" onClick={addTag} className="px-3 py-1.5 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded-lg text-sm transition-colors">+</button>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input type="text" value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+          placeholder={placeholder} className="field-inp" style={{ flex: 1 }} />
+        <button type="button" onClick={add} className="btn-secondary" style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem' }}>+</button>
       </div>
     </div>
   );
 }
 
-function MultiSelect({ label, options, selected, onChange }) {
-  function toggle(value) {
-    onChange(selected.includes(value) ? selected.filter(v => v !== value) : [...selected, value]);
-  }
+function ChakraSelect({ options, selected, onChange }) {
+  const toggle = v => onChange(selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v]);
   return (
-    <div>
-      <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">{label}</label>
-      <div className="flex flex-wrap gap-2">
-        {options.map(opt => (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => toggle(opt)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-              selected.includes(opt)
-                ? 'bg-violet-600/30 text-violet-300 border-violet-500'
-                : 'bg-stone-800 text-stone-400 border-stone-700 hover:border-stone-500'
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+      {options.map(opt => {
+        const on = selected.includes(opt);
+        const c = CHAKRA_COLORS[opt] || {};
+        return (
+          <button key={opt} type="button" onClick={() => toggle(opt)} style={{
+            fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+            cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+            border: on ? `1px solid ${c.border}` : `1px solid ${c.border ? c.border + '55' : 'var(--border)'}`,
+            color: on ? c.border : (c.border ? c.border + 'BB' : 'var(--text-sec)'),
+            background: on ? c.bg : 'transparent',
+          }}>{opt}</button>
+        );
+      })}
     </div>
   );
 }
 
-// ─── Éditeur de stock (mode lecture seule) ────────────────────────────────────
-
-function StockDisplay({ stock }) {
+function ZodiacSelect({ options, selected, onChange }) {
+  const toggle = v => onChange(selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v]);
   return (
-    <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
-      <h3 className="font-semibold text-stone-200 mb-4">📦 Stock</h3>
-      <div className="grid grid-cols-2 gap-3">
-        {STOCK_CATEGORIES.map(({ key, label }) => (
-          <div key={key} className="flex items-center justify-between bg-stone-800 rounded-xl px-3 py-2">
-            <span className="text-xs text-stone-400">{label}</span>
-            <span className={`text-sm font-medium ${
-              (stock[key] || 0) === 0 ? 'text-red-400' :
-              (stock[key] || 0) < 5 ? 'text-amber-400' : 'text-green-400'
-            }`}>
-              {stock[key] || 0}
-            </span>
-          </div>
-        ))}
-      </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+      {options.map(opt => {
+        const on = selected.includes(opt);
+        return (
+          <button key={opt} type="button" onClick={() => toggle(opt)} style={{
+            fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+            cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+            border: on ? '1px solid var(--copper)' : '1px solid var(--border)',
+            color: on ? 'var(--copper)' : 'var(--text-sec)',
+            background: on ? 'rgba(192,120,64,0.08)' : 'transparent',
+          }}>{opt}</button>
+        );
+      })}
     </div>
   );
 }
-
-// ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function CrystalDetail() {
   const { id } = useParams();
@@ -127,384 +117,305 @@ export default function CrystalDetail() {
 
   function startEditing() {
     setEditForm({
-      name: crystal.name,
-      imageUrl: crystal.imageUrl || '',
-      color: crystal.color,
-      colors: crystal.colors || [],
-      description: crystal.description || '',
-      virtues: crystal.virtues || [],
-      properties: crystal.properties || [],
+      name: crystal.name, imageUrl: crystal.imageUrl || '', color: crystal.color,
+      colors: crystal.colors || [], description: crystal.description || '',
+      virtues: crystal.virtues || [], properties: crystal.properties || [],
       origin: crystal.origin || '',
       chakras: crystal.chakras?.map(c => c.name) || [],
       zodiacSigns: crystal.zodiacSigns?.map(z => z.name) || [],
       precautions: crystal.precautions?.map(p => p.description) || [],
       stock: crystal.stock ? {
-        perlesCailloux: crystal.stock.perlesCailloux ?? 0,
-        perles2mm: crystal.stock.perles2mm ?? 0,
-        perles4mm: crystal.stock.perles4mm ?? 0,
-        perles6mm: crystal.stock.perles6mm ?? 0,
-        pierresRoulees: crystal.stock.pierresRoulees ?? 0,
-        pierresBrutes: crystal.stock.pierresBrutes ?? 0,
+        perlesCailloux: crystal.stock.perlesCailloux ?? 0, perles2mm: crystal.stock.perles2mm ?? 0,
+        perles4mm: crystal.stock.perles4mm ?? 0, perles6mm: crystal.stock.perles6mm ?? 0,
+        pierresRoulees: crystal.stock.pierresRoulees ?? 0, pierresBrutes: crystal.stock.pierresBrutes ?? 0,
       } : { perlesCailloux: 0, perles2mm: 0, perles4mm: 0, perles6mm: 0, pierresRoulees: 0, pierresBrutes: 0 },
     });
-    setIsEditing(true);
-    setEditError('');
+    setIsEditing(true); setEditError('');
   }
 
-  function field(key, value) {
-    setEditForm(f => ({ ...f, [key]: value }));
-  }
+  function field(key, value) { setEditForm(f => ({ ...f, [key]: value })); }
 
   async function handleSave() {
     if (!editForm.name.trim()) { setEditError('Le nom est requis.'); return; }
-    setSaving(true);
-    setEditError('');
+    setSaving(true); setEditError('');
     try {
       const chakraIds = chakras.filter(c => editForm.chakras.includes(c.name)).map(c => c.id);
       const zodiacIds = zodiacs.filter(z => editForm.zodiacSigns.includes(z.name)).map(z => z.id);
-
       await crystalApi.update(id, {
-        name: editForm.name.trim(),
-        imageUrl: editForm.imageUrl || null,
-        color: editForm.color,
-        colors: editForm.colors,
-        description: editForm.description,
-        virtues: editForm.virtues,
-        properties: editForm.properties,
-        hardness: editForm.hardness ? parseFloat(editForm.hardness) : null,
-        origin: editForm.origin || null,
-        chakraIds,
-        zodiacIds,
-        precautions: editForm.precautions,
+        name: editForm.name.trim(), imageUrl: editForm.imageUrl || null,
+        color: editForm.color, colors: editForm.colors, description: editForm.description,
+        virtues: editForm.virtues, properties: editForm.properties, hardness: null,
+        origin: editForm.origin || null, chakraIds, zodiacIds, precautions: editForm.precautions,
       });
-
-      // Mettre à jour le stock séparément
       await crystalApi.updateStock(id, editForm.stock);
-
       await fetchCrystalById(id);
       setIsEditing(false);
     } catch (err) {
       setEditError(err.message || 'Erreur lors de la sauvegarde.');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   async function handleDelete() {
-    if (!window.confirm(`Supprimer "${crystal.name}" définitivement ? Cette action est irréversible.`)) return;
+    if (!window.confirm(`Supprimer "${crystal.name}" définitivement ?`)) return;
     setDeleting(true);
-    try {
-      await crystalApi.delete(id);
-      navigate('/');
-    } catch (err) {
-      alert('Erreur lors de la suppression : ' + err.message);
-      setDeleting(false);
-    }
+    try { await crystalApi.delete(id); navigate('/'); }
+    catch (err) { alert('Erreur : ' + err.message); setDeleting(false); }
   }
 
-  // ── États de chargement / erreur ─────────────────────────────────────────
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
+      <span style={{ color: 'var(--amber)', fontSize: '1.2rem', letterSpacing: '0.4rem' }}>✦ · · ✦</span>
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin text-4xl">💎</div>
-      </div>
-    );
-  }
-
-  if (error || !crystal) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-400">⚠️ Cristal non trouvé</div>
-        <Link to="/" className="btn-secondary inline-block mt-4">← Retour</Link>
-      </div>
-    );
-  }
+  if (error || !crystal) return (
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div style={{ background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.22)', borderRadius: '1rem', padding: '1rem', color: '#A03020' }}>Cristal non trouvé</div>
+      <Link to="/" className="btn-secondary" style={{ display: 'inline-flex', marginTop: '1rem' }}>← Retour</Link>
+    </div>
+  );
 
   const fav = isFavorite(crystal.id);
 
-  // ── Mode édition ──────────────────────────────────────────────────────────
+  // ── Mode édition ─────────────────────────────────────────────────────────
 
   if (isEditing && editForm) {
+    const chakraOpts = chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES;
+    const zodiacOpts = zodiacs.length ? zodiacs.map(z => z.name) : ZODIAC_NAMES;
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 animate-slide-up">
-        {/* En-tête édition */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-sm text-stone-500">
-            <Link to="/" className="hover:text-stone-300 transition-colors">Bibliothèque</Link>
-            <span>/</span>
-            <span className="text-stone-300">{crystal.name}</span>
-            <span>/</span>
-            <span className="text-violet-400">Édition</span>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-dim)' }}>
+            <Link to="/" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>Bibliothèque</Link>
+            {' / '}<span style={{ color: 'var(--text-sec)' }}>{crystal.name}</span>
+            {' / '}<span style={{ color: 'var(--copper)' }}>Édition</span>
           </div>
-          <button onClick={() => setIsEditing(false)} className="text-sm text-stone-500 hover:text-stone-300 transition-colors">
-            ✕ Annuler
-          </button>
+          <button onClick={() => setIsEditing(false)} className="btn-secondary" style={{ fontSize: '0.75rem' }}>✕ Annuler</button>
         </div>
 
-        <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 space-y-6">
-
-          {/* Nom + Couleur */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div style={{ paddingBottom: '2rem' }}>
+          <div className="block-head"><span className="block-sym">✦</span><span className="block-ttl">Identité</span><span className="block-line" /></div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.4rem' }}>
+            <div><label className="field-lbl">Nom *</label><input type="text" value={editForm.name} onChange={e => field('name', e.target.value)} className="field-inp" /></div>
             <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Nom *</label>
-              <input type="text" value={editForm.name} onChange={e => field('name', e.target.value)}
-                className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 focus:outline-none focus:border-violet-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Couleur principale *</label>
-              <div className="flex items-center gap-3">
-                <input type="color" value={editForm.color} onChange={e => field('color', e.target.value)}
-                  className="h-10 w-16 rounded cursor-pointer bg-transparent border border-stone-700" />
-                <input type="text" value={editForm.color} onChange={e => field('color', e.target.value)}
-                  className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 font-mono text-sm focus:outline-none focus:border-violet-500" />
+              <label className="field-lbl">Couleur principale</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <input type="color" value={editForm.color} onChange={e => field('color', e.target.value)} style={{ height: '36px', width: '52px', borderRadius: '0.375rem', cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)' }} />
+                <input type="text" value={editForm.color} onChange={e => field('color', e.target.value)} className="field-inp" style={{ flex: 1 }} />
               </div>
             </div>
           </div>
-
-          {/* Image */}
-          <div>
-            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">URL de l'image</label>
-            <div className="flex gap-3 items-start">
-              <input type="url" value={editForm.imageUrl} onChange={e => field('imageUrl', e.target.value)}
-                placeholder="https://..."
-                className="flex-1 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500" />
-              {editForm.imageUrl && (
-                <img src={editForm.imageUrl} alt="Aperçu"
-                  className="h-16 w-16 rounded-lg object-cover border border-stone-700 flex-shrink-0"
-                  onError={e => { e.target.style.display = 'none'; }} />
-              )}
+          <div style={{ marginBottom: '1.4rem' }}>
+            <label className="field-lbl">URL de l'image</label>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <input type="url" value={editForm.imageUrl} onChange={e => field('imageUrl', e.target.value)} placeholder="https://…" className="field-inp" style={{ flex: 1 }} />
+              {editForm.imageUrl && <img src={editForm.imageUrl} alt="Aperçu" style={{ height: '52px', width: '52px', borderRadius: '0.5rem', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} />}
             </div>
           </div>
+          <div style={{ marginBottom: '1.4rem' }}><label className="field-lbl">Description</label><textarea value={editForm.description} onChange={e => field('description', e.target.value)} rows={3} className="field-area" placeholder="Propriétés lithothérapeutiques…" /></div>
+          <div><label className="field-lbl">Origine</label><input type="text" value={editForm.origin} onChange={e => field('origin', e.target.value)} placeholder="Ex: Brésil, Madagascar…" className="field-inp" /></div>
+        </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Description</label>
-            <textarea value={editForm.description} onChange={e => field('description', e.target.value)} rows={3}
-              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500 resize-none"
-              placeholder="Propriétés lithothérapeutiques..." />
+        <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+        <div style={{ padding: '2rem 0' }}>
+          <div className="block-head"><span className="block-sym">☽</span><span className="block-ttl">Vertus &amp; Propriétés</span><span className="block-line" /></div>
+          <TagInput label="Vertus" values={editForm.virtues} onChange={v => field('virtues', v)} placeholder="Ex: Protection" />
+          <TagInput label="Propriétés générales" values={editForm.properties} onChange={v => field('properties', v)} placeholder="Ex: Pierre de méditation" />
+          <TagInput label="Précautions" values={editForm.precautions} onChange={v => field('precautions', v)} placeholder="Ex: Sensible à l'eau" />
+        </div>
+
+        <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+        <div style={{ padding: '2rem 0' }}>
+          <div className="block-head"><span className="block-sym">◯</span><span className="block-ttl">Énergies</span><span className="block-line" /></div>
+          <div style={{ marginBottom: '1.1rem' }}>
+            <label className="field-lbl" style={{ marginBottom: '0.5rem' }}>Chakras associés</label>
+            <ChakraSelect options={chakraOpts} selected={editForm.chakras} onChange={v => field('chakras', v)} />
           </div>
-
-          {/* Origine */}
           <div>
-            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-2">Origine</label>
-            <input type="text" value={editForm.origin} onChange={e => field('origin', e.target.value)}
-              placeholder="Ex: Brésil, Madagascar..."
-              className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-violet-500" />
-          </div>
-
-          {/* Tags */}
-          <TagInput label="Couleurs" values={editForm.colors} onChange={v => field('colors', v)} placeholder="Ex: violet — Entrée" />
-          <TagInput label="Vertus / Bénéfices" values={editForm.virtues} onChange={v => field('virtues', v)} placeholder="Ex: Protection — Entrée" />
-          <TagInput label="Propriétés générales" values={editForm.properties} onChange={v => field('properties', v)} placeholder="Ex: Pierre de méditation — Entrée" />
-          <TagInput label="Précautions" values={editForm.precautions} onChange={v => field('precautions', v)} placeholder="Ex: Sensible à l'eau — Entrée" />
-
-          {/* Chakras */}
-          <MultiSelect
-            label="Chakras associés"
-            options={chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES}
-            selected={editForm.chakras}
-            onChange={v => field('chakras', v)}
-          />
-
-          {/* Zodiaque */}
-          <MultiSelect
-            label="Signes du zodiaque"
-            options={zodiacs.length ? zodiacs.map(z => z.name) : ZODIAC_NAMES}
-            selected={editForm.zodiacSigns}
-            onChange={v => field('zodiacSigns', v)}
-          />
-
-          {/* Stock */}
-          <div>
-            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">Stock</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {STOCK_CATEGORIES.map(({ key, label }) => (
-                <div key={key}>
-                  <label className="block text-xs text-stone-500 mb-1">{label}</label>
-                  <input type="number" min="0" value={editForm.stock[key]}
-                    onChange={e => field('stock', { ...editForm.stock, [key]: parseInt(e.target.value) || 0 })}
-                    className="w-full bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 text-sm focus:outline-none focus:border-violet-500" />
-                </div>
-              ))}
-            </div>
+            <label className="field-lbl" style={{ marginBottom: '0.5rem' }}>Signes du zodiaque</label>
+            <ZodiacSelect options={zodiacOpts} selected={editForm.zodiacSigns} onChange={v => field('zodiacSigns', v)} />
           </div>
         </div>
 
-        {/* Erreur */}
+        <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+        <div style={{ paddingTop: '2rem' }}>
+          <div className="block-head"><span className="block-sym">◇</span><span className="block-ttl">Stock</span><span className="block-line" /></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.2rem' }}>
+            {STOCK_CATEGORIES.map(({ key, label }) => (
+              <div key={key} style={{ textAlign: 'center' }}>
+                <label style={{ display: 'block', fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.28rem' }}>{label}</label>
+                <input type="number" min="0" value={editForm.stock[key]}
+                  onChange={e => field('stock', { ...editForm.stock, [key]: parseInt(e.target.value) || 0 })}
+                  style={{ width: '100%', textAlign: 'center', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '0.28rem', fontSize: '1rem', color: 'var(--text)', fontFamily: "'Playfair Display', serif", outline: 'none' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
         {editError && (
-          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">{editError}</div>
+          <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.22)', borderRadius: '0.75rem', color: '#A03020', fontSize: '0.875rem' }}>{editError}</div>
         )}
 
-        {/* Boutons */}
-        <div className="flex gap-3 mt-6">
-          <button onClick={handleSave} disabled={saving}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors">
-            {saving ? <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />Sauvegarde...</> : '💾 Enregistrer'}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.9rem', marginTop: '2.5rem' }}>
+          <button onClick={handleSave} disabled={saving} className="btn-save">
+            {saving ? '· · ·' : '✦  Enregistrer les modifications  ✦'}
           </button>
-          <button onClick={() => setIsEditing(false)}
-            className="px-6 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl font-medium transition-colors">
-            Annuler
-          </button>
+          <button onClick={() => setIsEditing(false)} style={{ fontSize: '0.76rem', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'var(--border)', fontFamily: "'Inter', sans-serif" }}>Annuler</button>
         </div>
       </div>
     );
   }
 
-  // ── Mode affichage ────────────────────────────────────────────────────────
+  // ── Mode affichage ───────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 animate-slide-up">
-      {/* Breadcrumb + actions */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2 text-sm text-stone-500">
-          <Link to="/" className="hover:text-stone-300 transition-colors">Bibliothèque</Link>
-          <span>/</span>
-          <span className="text-stone-300">{crystal.name}</span>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '0.76rem', color: 'var(--text-dim)' }}>
+          <Link to="/" style={{ color: 'var(--text-dim)', textDecoration: 'none' }}>Bibliothèque</Link>
+          {' / '}<span style={{ color: 'var(--text-sec)' }}>{crystal.name}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={startEditing}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg transition-colors">
-            ✏️ Modifier
-          </button>
-          <button onClick={handleDelete} disabled={deleting}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-800/40 rounded-lg transition-colors disabled:opacity-50">
-            {deleting ? '...' : '🗑️ Supprimer'}
+        <div style={{ display: 'flex', gap: '0.45rem' }}>
+          <button onClick={startEditing} className="btn-secondary" style={{ fontSize: '0.76rem' }}>Modifier</button>
+          <button onClick={handleDelete} disabled={deleting} className="btn-danger" style={{ fontSize: '0.76rem' }}>
+            {deleting ? '· · ·' : '✕ Supprimer'}
           </button>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-5 gap-8">
-        {/* Colonne gauche */}
-        <div className="md:col-span-2 space-y-4">
-          {/* Visuel */}
-          <div
-            className="rounded-2xl h-64 flex items-center justify-center border border-stone-800 overflow-hidden"
-            style={{ background: `radial-gradient(circle, ${crystal.color}44, ${crystal.color}11)` }}
-          >
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '2rem' }}>
+        {/* Gauche */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+          <div style={{
+            borderRadius: '1.25rem', height: '255px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
+            background: `radial-gradient(circle, ${crystal.color}44, ${crystal.color}11)`,
+          }}>
             {crystal.imageUrl ? (
-              <img src={crystal.imageUrl} alt={crystal.name} className="h-full w-full object-cover" />
+              <img src={crystal.imageUrl} alt={crystal.name} style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
             ) : (
-              <div className="w-28 h-28 rounded-full shadow-2xl"
-                style={{ backgroundColor: crystal.color, boxShadow: `0 0 60px ${crystal.color}88` }} />
+              <>
+                <span style={{ position: 'absolute', top: '1rem', left: '1rem', color: 'var(--amber)', opacity: 0.45, fontSize: '0.72rem' }}>✦</span>
+                <div style={{ width: '96px', height: '96px', borderRadius: '50%', backgroundColor: crystal.color, boxShadow: `0 0 58px ${crystal.color}88` }} />
+                <span style={{ position: 'absolute', bottom: '1rem', right: '1rem', color: 'var(--amber)', opacity: 0.35, fontSize: '0.58rem' }}>✧</span>
+              </>
             )}
           </div>
 
-          {/* Favoris */}
-          <button onClick={() => toggleFavorite(crystal.id)}
-            className={`w-full py-2.5 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-              fav ? 'bg-rose-600/20 text-rose-400 border border-rose-500/30 hover:bg-rose-600/30' : 'btn-secondary'
-            }`}>
-            {fav ? '❤️ Dans vos favoris' : '🤍 Ajouter aux favoris'}
+          <button onClick={() => toggleFavorite(crystal.id)} style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem',
+            padding: '0.62rem', borderRadius: '0.875rem', cursor: 'pointer', transition: 'all 0.15s',
+            background: fav ? 'rgba(160,50,30,0.07)' : 'rgba(230,210,190,0.2)',
+            color: fav ? '#A03020' : 'var(--text-sec)',
+            border: fav ? '1px solid rgba(160,50,30,0.22)' : '1px solid var(--border)',
+            fontFamily: "'Inter', sans-serif", fontSize: '0.82rem',
+          }}>
+            {fav ? '♥ Dans vos favoris' : '♡ Ajouter aux favoris'}
           </button>
 
-          {/* Infos rapides */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-2 text-sm">
+          <div className="info-card">
             {crystal.origin && (
-              <div className="flex justify-between">
-                <span className="text-stone-500">Origine</span>
-                <span className="text-stone-200 text-right max-w-32">{crystal.origin}</span>
+              <div className="info-row">
+                <span style={{ color: 'var(--text-dim)' }}>⊹ Origine</span>
+                <span style={{ color: 'var(--text)', fontWeight: 500 }}>{crystal.origin}</span>
               </div>
             )}
             {crystal.color && (
-              <div className="flex justify-between items-center">
-                <span className="text-stone-500">Couleur principale</span>
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: crystal.color }} />
+              <div className="info-row">
+                <span style={{ color: 'var(--text-dim)' }}>● Couleur</span>
+                <div style={{ width: '13px', height: '13px', borderRadius: '50%', backgroundColor: crystal.color }} />
               </div>
             )}
           </div>
 
-          {/* Stock */}
-          {crystal.stock && <StockDisplay stock={crystal.stock} />}
+          {crystal.stock && (
+            <div className="info-card">
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-sec)', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ color: 'var(--amber)' }}>◇</span> Stock
+              </div>
+              {STOCK_CATEGORIES.map(({ key, label }) => {
+                const val = crystal.stock[key] || 0;
+                return (
+                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.32rem 0', borderBottom: '1px solid rgba(221,208,188,0.35)', fontSize: '0.78rem' }}>
+                    <span style={{ color: 'var(--text-dim)' }}>{label}</span>
+                    <span style={{ fontWeight: 500, color: val === 0 ? '#A03020' : val < 5 ? '#8B6914' : 'var(--copper)' }}>{val}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Colonne droite */}
-        <div className="md:col-span-3 space-y-6">
+        {/* Droite */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
           <div>
-            <h1 className="font-serif text-3xl text-stone-100">{crystal.name}</h1>
-            {crystal.description && (
-              <p className="mt-2 text-stone-400 leading-relaxed">{crystal.description}</p>
-            )}
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.1rem', color: 'var(--text)' }}>{crystal.name}</h1>
+            {crystal.description && <p style={{ color: 'var(--text-sec)', lineHeight: 1.72, fontSize: '0.875rem', marginTop: '0.5rem' }}>{crystal.description}</p>}
           </div>
 
+          <div className="divider-cel" style={{ margin: 0 }}>✦ · · ✦</div>
+
           {crystal.virtues?.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">✨ Vertus</h2>
-              <div className="flex flex-wrap gap-2">
-                {crystal.virtues.map(v => (
-                  <span key={v} className="badge bg-violet-600/20 text-violet-300 border border-violet-500/30">{v}</span>
-                ))}
+            <div>
+              <div className="dsec-title"><span>∗</span> Vertus</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {crystal.virtues.map(v => <span key={v} className="vbadge">{v}</span>)}
               </div>
-            </section>
+            </div>
           )}
 
           {crystal.chakras?.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">🌀 Chakras associés</h2>
-              <div className="flex flex-wrap gap-2">
+            <div>
+              <div className="dsec-title"><span>◯</span> Chakras associés</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.chakras.map(ch => (
-                  <span key={ch.id} className="badge"
-                    style={{ backgroundColor: ch.color + '22', borderColor: ch.color + '55', color: ch.color, border: '1px solid' }}>
-                    {ch.name}
+                  <span key={ch.id} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', backgroundColor: ch.color + '14', color: ch.color, border: `1px solid ${ch.color}2E` }}>
+                    ◯ {ch.name}
                   </span>
                 ))}
               </div>
-            </section>
+            </div>
           )}
 
           {crystal.zodiacSigns?.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">♈ Signes associés</h2>
-              <div className="flex flex-wrap gap-2">
+            <div>
+              <div className="dsec-title"><span>☽</span> Signes associés</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.zodiacSigns.map(z => (
-                  <span key={z.id} className="badge bg-stone-800 text-stone-300 border border-stone-700">
-                    {z.symbol} {z.name}
-                    {z.element && <span className="text-stone-500 ml-1">· {z.element}</span>}
+                  <span key={z.id} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', border: '1px solid var(--border)', color: 'var(--text-sec)', background: 'var(--bg)' }}>
+                    {z.symbol} {z.name}{z.element && <span style={{ color: 'var(--text-dim)' }}> · {z.element}</span>}
                   </span>
                 ))}
               </div>
-            </section>
+            </div>
           )}
 
           {crystal.compatibleWith?.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">💚 Compatible avec</h2>
-              <div className="flex flex-wrap gap-2">
+            <div>
+              <div className="dsec-title"><span>◌</span> Compatible avec</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.compatibleWith.map(c => (
-                  <Link key={c.id} to={`/crystals/${c.id}`}
-                    className="badge bg-green-900/20 text-green-400 border border-green-800/40 hover:bg-green-900/30 transition-colors">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                  <Link key={c.id} to={`/crystals/${c.id}`} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', border: '1px solid rgba(192,120,64,0.32)', color: 'var(--copper)', background: 'var(--bg)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: c.color, display: 'inline-block' }} />
                     {c.name}
                   </Link>
                 ))}
               </div>
-            </section>
-          )}
-
-          {crystal.incompatibleWith?.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">⚠️ Incompatible avec</h2>
-              <div className="flex flex-wrap gap-2">
-                {crystal.incompatibleWith.map(c => (
-                  <Link key={c.id} to={`/crystals/${c.id}`}
-                    className="badge bg-red-900/20 text-red-400 border border-red-800/40 hover:bg-red-900/30 transition-colors">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                    {c.name}
-                  </Link>
-                ))}
-              </div>
-            </section>
+            </div>
           )}
 
           {crystal.precautions?.length > 0 && (
-            <section className="bg-amber-900/10 border border-amber-800/30 rounded-xl p-4">
-              <h2 className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">⚠️ Précautions</h2>
-              <ul className="space-y-1">
+            <div style={{ background: 'rgba(180,130,20,0.06)', border: '1px solid rgba(180,130,20,0.2)', borderRadius: '1rem', padding: '0.9rem 1.1rem' }}>
+              <div className="dsec-title"><span>△</span> Précautions</div>
+              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {crystal.precautions.map(p => (
-                  <li key={p.id} className="text-sm text-amber-300/80">· {p.description}</li>
+                  <li key={p.id} style={{ fontSize: '0.82rem', color: '#8B6914' }}>· {p.description}</li>
                 ))}
               </ul>
-            </section>
+            </div>
           )}
         </div>
       </div>

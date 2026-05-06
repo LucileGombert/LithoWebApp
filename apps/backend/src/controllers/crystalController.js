@@ -1,5 +1,5 @@
 const crystalService = require('../services/crystalService');
-import { precautionApi } from './../../../frontend/src/services/api';
+// import { precautionApi } from './../../../frontend/src/services/api';
 const researchService = require('../services/researchService');
 const aiService = require('../services/aiService');
 
@@ -78,6 +78,7 @@ async function updateCrystal(req, res) {
   try {
     const crystal = await crystalService.updateCrystal(req.params.id, req.body);
     res.json(crystal);
+    console.log(crystal);
   } catch (err) {
     console.error('updateCrystal error:', err);
     if (err.code === 'P2025') {

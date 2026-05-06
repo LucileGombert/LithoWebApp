@@ -164,13 +164,13 @@ export default function CrystalDetail() {
     try {
       const chakraIds = chakras.filter(c => editForm.chakras.includes(c.name)).map(c => c.id);
       const zodiacIds = zodiacs.filter(z => editForm.zodiacSigns.includes(z.name)).map(z => z.id);
-      const precautionsIds = precautions.filter(p => editForm.precautions.includes(p.description)).map(p => p.id);
+      const precautionIds = precautions.filter(p => editForm.precautions.includes(p.description)).map(p => p.id);
 
       await crystalApi.update(id, {
         name: editForm.name.trim(), imageUrl: editForm.imageUrl || null,
         color: editForm.color, colors: editForm.colors, description: editForm.description,
         virtues: editForm.virtues, properties: editForm.properties, hardness: null,
-        origin: editForm.origin || null, chakraIds, zodiacIds, precautions: editForm.precautions,
+        origin: editForm.origin || null, chakraIds, zodiacIds, precautionIds,
       });
       await crystalApi.updateStock(id, editForm.stock);
       await fetchCrystalById(id);

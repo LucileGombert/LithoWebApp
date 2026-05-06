@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { crystalApi, chakraApi, zodiacApi } from '../services/api';
+import { crystalApi, chakraApi, zodiacApi, precautionApi } from '../services/api';
 
 const emptyForm = {
   name: '', color: '#8B5CF6', imageUrl: '', colors: [], description: '',
@@ -11,6 +11,7 @@ const emptyForm = {
 
 const CHAKRA_NAMES = ['Racine', 'Sacré', 'Plexus Solaire', 'Cœur', 'Gorge', 'Troisième Œil', 'Couronne'];
 const ZODIAC_NAMES = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge', 'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons'];
+const PRECAUTION_NAMES = ["Éviter l'exposition prolongée au soleil (peut altérer la couleur et/ou les propriétés)", "Éviter les environnements humides", "Éviter le contact direct avec le sel", "Éviter le contact prolongé avec l'eau"];
 
 const CHAKRA_COLORS = {
   'Racine':         { border: '#CC3333', bg: 'rgba(204,51,51,0.09)',   def: 'rgba(204,51,51,0.38)' },
@@ -57,7 +58,7 @@ const STOCK_KEYS = [
   { key: 'pierresBrutes',  label: 'Pierres brutes' },
 ];
 
-const ablock = { padding: '2.25rem 0' };
+const ablock = { width:'80%', padding: '2.25rem 0' };
 
 export default function AddCrystal() {
   const navigate = useNavigate();
@@ -71,10 +72,12 @@ export default function AddCrystal() {
   const [error, setError] = useState('');
   const [chakras, setChakras] = useState([]);
   const [zodiacs, setZodiacs] = useState([]);
+  const [precautions, setPrecautions] = useState([]);
 
   useEffect(() => {
     chakraApi.getAll().then(setChakras).catch(() => {});
     zodiacApi.getAll().then(setZodiacs).catch(() => {});
+    precautionApi.getAll().then(setPrecautions).catch(() => {});
   }, []);
 
   function field(key, value) { setForm(f => ({ ...f, [key]: value })); }
@@ -108,6 +111,8 @@ export default function AddCrystal() {
     try {
       const chakraIds = chakras.filter(c => form.chakras.includes(c.name)).map(c => c.id);
       const zodiacIds = zodiacs.filter(z => form.zodiacSigns.includes(z.name)).map(z => z.id);
+      const precautionIds = precautions.filter(p => form.precautions.includes(p.description)).map(p => p.id);
+      
       const created = await crystalApi.create({
         name: form.name.trim(), color: form.color, imageUrl: form.imageUrl || null,
         colors: form.colors, description: form.description, virtues: form.virtues,
@@ -125,6 +130,7 @@ export default function AddCrystal() {
 
   const chakraOpts = chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES;
   const zodiacOpts = zodiacs.length ? zodiacs.map(z => z.name) : ZODIAC_NAMES;
+  const precautionOpts = precautions.length ? precautions.map(p => p.description) : PRECAUTION_NAMES;
 
   const tabStyle = (key) => ({
     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.22rem',
@@ -135,22 +141,34 @@ export default function AddCrystal() {
   });
 
   return (
-    <div style={{ maxWidth: '680px', margin: '0 auto', padding: '3rem 1.5rem 6rem' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="eyebrow mb-2">✦ &nbsp; Bibliothèque &nbsp; ✦</div>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.85rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
+        Ajouter un cristal
+      </h1>
+      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '1rem', color: 'var(--text-dim)', marginBottom: '2rem' }}>
+        Choisissez votre méthode de création
+      </p>
+      <div className="divider-cel mb-6">✦ · · ✦ · · ✦</div>
+
+
+    {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"> */}
+    {/* <div style={{ maxWidth: '680px', margin: '0 auto', padding: '3rem 1.5rem 6rem' }}> */}
       {/* En-tête */}
-      <div className="eyebrow" style={{ textAlign: 'center', marginBottom: '0.55rem' }}>✦ &nbsp; Bibliothèque &nbsp; ✦</div>
-      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.95rem', color: 'var(--text)', textAlign: 'center', marginBottom: '0.4rem' }}>
+      {/* <div className="eyebrow" style={{ textAlign: 'center', marginBottom: '0.55rem' }}>✦ &nbsp; Bibliothèque &nbsp; ✦</div> */}
+      {/* <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.95rem', color: 'var(--text)', textAlign: 'center', marginBottom: '0.4rem' }}>
         Ajouter un cristal
       </h1>
       <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '1rem', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '1.75rem' }}>
         Choisissez votre méthode de création
-      </p>
+      </p> */}
 
       {/* Onglets de mode */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '0' }}>
         {[
           { key: 'auto',      ico: '✦', lbl: 'Automatique',      sub: 'Wikipedia + Gemini' },
           { key: 'semi-auto', ico: '⟡', lbl: 'Semi-automatique', sub: 'Vos sources + Gemini' },
-          { key: 'manual',    ico: '✐', lbl: 'Manuel',            sub: 'Saisie libre' },
+          { key: 'manual',    ico: '✎', lbl: 'Manuel',            sub: 'Saisie libre' },
         ].map(m => (
           <button key={m.key} style={tabStyle(m.key)}
             onClick={() => { setMode(m.key); setShowForm(m.key === 'manual'); setError(''); }}>
@@ -161,206 +179,225 @@ export default function AddCrystal() {
         ))}
       </div>
 
-      {/* Nom du cristal */}
-      <div style={{ textAlign: 'center', margin: '1.75rem 0 0.5rem' }}>
-        <input
-          value={crystalName}
-          onChange={e => { setCrystalName(e.target.value); if (showForm) field('name', e.target.value); }}
-          placeholder="Nom du cristal…"
-          style={{
-            width: '100%', background: 'transparent', border: 'none',
-            borderBottom: '1.5px solid var(--border)', padding: '0.5rem 0.25rem',
-            fontFamily: "'Playfair Display', serif", fontSize: '1.45rem',
-            color: 'var(--text)', textAlign: 'center', outline: 'none',
-          }}
-        />
-        <p style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '0.35rem', letterSpacing: '0.04em' }}>
-          Saisissez le nom du cristal avant de lancer la recherche
-        </p>
-      </div>
+      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center',  margin: '1.75rem 0 0.5rem' }}>
+        {/* Nom du cristal */}
+        <div style={{width:'80%', textAlign: 'center', margin: '1.75rem 0 0.5rem' }}>
+          <input
+            value={crystalName}
+            onChange={e => { setCrystalName(e.target.value); if (showForm) field('name', e.target.value); }}
+            placeholder="Nom du cristal…"
+            style={{
+              width: '100%', background: 'transparent', border: 'none',
+              borderBottom: '1.5px solid var(--border)', padding: '0.5rem 0.25rem',
+              fontFamily: "'Playfair Display', serif", fontSize: '1.45rem',
+              color: 'var(--text)', textAlign: 'center', outline: 'none',
+            }}
+          />
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '0.35rem', letterSpacing: '0.04em' }}>
+            Saisissez le nom du cristal avant de lancer la recherche
+          </p>
+        </div>
 
-      {/* Zone d'action (avant la saisie du formulaire) */}
-      {!showForm && (
-        <div style={{ margin: '1.5rem 0' }}>
-          {mode === 'auto' && (
-            <button type="button" onClick={handleResearch} disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-              {loading ? <><span style={{ display: 'inline-block', width: '14px', height: '14px', border: '2px solid #FFF8F0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> Recherche en cours…</> : '⊙ Lancer la recherche automatique'}
-            </button>
-          )}
-          {mode === 'semi-auto' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Collez les liens des pages sources à analyser</p>
-              {sourceUrls.map((url, i) => (
-                <div key={i} style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input type="url" value={url} onChange={e => updateUrl(i, e.target.value)}
-                    placeholder={`https://exemple.com/cristal-${i + 1}`} className="field-inp" style={{ flex: 1 }} />
-                  {sourceUrls.length > 1 && (
-                    <button type="button" onClick={() => removeUrl(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: '0.8rem' }}>✕</button>
+        {/* Zone d'action (avant la saisie du formulaire) */}
+        {!showForm && (
+          <div style={{ margin: '1.5rem 0' }}>
+            {mode === 'auto' && (
+              <button type="button" onClick={handleResearch} disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
+                {loading ? <><span style={{ display: 'inline-block', width: '14px', height: '14px', border: '2px solid #FFF8F0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> Recherche en cours…</> : '⊙ Lancer la recherche automatique'}
+              </button>
+            )}
+            {mode === 'semi-auto' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Collez les liens des pages sources à analyser</p>
+                {sourceUrls.map((url, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input type="url" value={url} onChange={e => updateUrl(i, e.target.value)}
+                      placeholder={`https://exemple.com/cristal-${i + 1}`} className="field-inp" style={{ flex: 1 }} />
+                    {sourceUrls.length > 1 && (
+                      <button type="button" onClick={() => removeUrl(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: '0.8rem' }}>✕</button>
+                    )}
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button type="button" onClick={addUrl} className="btn-secondary" style={{ fontSize: '0.75rem' }}>+ Ajouter une source</button>
+                  <button type="button" onClick={handleResearch} disabled={loading} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
+                    {loading ? '· · ·' : '⟡ Analyser les sources'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {mode === 'manual' && (
+              <button type="button" onClick={handleManual} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
+                ✎ Ouvrir le formulaire
+              </button>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div style={{ margin: '1rem 0', padding: '0.75rem 1rem', background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.22)', borderRadius: '0.75rem', color: '#A03020', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
+
+        {/* Formulaire aérien */}
+        {showForm && (
+          <>
+            {/* ◆ Identité */}
+            <div style={ablock}>
+              <div className="block-head"><span className="block-sym">✦</span><span className="block-ttl">Identité</span><span className="block-line" /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.4rem' }}>
+                <div>
+                  <label className="field-lbl">Couleur principale</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <input type="color" value={form.color} onChange={e => field('color', e.target.value)}
+                      style={{ height: '32px', width: '44px', borderRadius: '0.375rem', cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)' }} />
+                    <input type="text" value={form.color} onChange={e => field('color', e.target.value)} className="field-inp" style={{ flex: 1 }} />
+                  </div>
+                </div>
+                <div>
+                  <label className="field-lbl">Origine</label>
+                  <input type="text" value={form.origin} onChange={e => field('origin', e.target.value)} placeholder="Finlande, Madagascar…" className="field-inp" />
+                </div>
+              </div>
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label className="field-lbl">Description</label>
+                <textarea value={form.description} onChange={e => field('description', e.target.value)} rows={3} className="field-area" placeholder="Décrivez les propriétés lithothérapeutiques du cristal…" />
+              </div>
+              <div>
+                <label className="field-lbl">Image — URL</label>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <input type="url" value={form.imageUrl} onChange={e => field('imageUrl', e.target.value)} placeholder="https://…" className="field-inp" style={{ flex: 1 }} />
+                  {form.imageUrl && (
+                    <img src={form.imageUrl} alt="Aperçu" style={{ height: '52px', width: '52px', borderRadius: '0.5rem', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
+                      onError={e => { e.target.style.display = 'none'; }} />
                   )}
                 </div>
-              ))}
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button type="button" onClick={addUrl} className="btn-secondary" style={{ fontSize: '0.75rem' }}>+ Ajouter une source</button>
-                <button type="button" onClick={handleResearch} disabled={loading} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
-                  {loading ? '· · ·' : '⟡ Analyser les sources'}
-                </button>
-              </div>
-            </div>
-          )}
-          {mode === 'manual' && (
-            <button type="button" onClick={handleManual} className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-              ✐ Ouvrir le formulaire
-            </button>
-          )}
-        </div>
-      )}
-
-      {error && (
-        <div style={{ margin: '1rem 0', padding: '0.75rem 1rem', background: 'rgba(160,50,30,0.07)', border: '1px solid rgba(160,50,30,0.22)', borderRadius: '0.75rem', color: '#A03020', fontSize: '0.875rem' }}>
-          {error}
-        </div>
-      )}
-
-      {/* Formulaire aérien */}
-      {showForm && (
-        <>
-          <div className="divider-cel" style={{ margin: '1.5rem 0 0' }}>✦ · · ✦ · · ✦</div>
-
-          {/* ◆ Identité */}
-          <div style={ablock}>
-            <div className="block-head"><span className="block-sym">✦</span><span className="block-ttl">Identité</span><span className="block-line" /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.4rem' }}>
-              <div>
-                <label className="field-lbl">Couleur principale</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <input type="color" value={form.color} onChange={e => field('color', e.target.value)}
-                    style={{ height: '32px', width: '44px', borderRadius: '0.375rem', cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)' }} />
-                  <input type="text" value={form.color} onChange={e => field('color', e.target.value)} className="field-inp" style={{ flex: 1 }} />
-                </div>
-              </div>
-              <div>
-                <label className="field-lbl">Origine</label>
-                <input type="text" value={form.origin} onChange={e => field('origin', e.target.value)} placeholder="Finlande, Madagascar…" className="field-inp" />
-              </div>
-            </div>
-            <div style={{ marginBottom: '1.4rem' }}>
-              <label className="field-lbl">Description</label>
-              <textarea value={form.description} onChange={e => field('description', e.target.value)} rows={3} className="field-area" placeholder="Décrivez les propriétés lithothérapeutiques du cristal…" />
-            </div>
-            <div>
-              <label className="field-lbl">Image — URL</label>
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                <input type="url" value={form.imageUrl} onChange={e => field('imageUrl', e.target.value)} placeholder="https://…" className="field-inp" style={{ flex: 1 }} />
-                {form.imageUrl && (
-                  <img src={form.imageUrl} alt="Aperçu" style={{ height: '52px', width: '52px', borderRadius: '0.5rem', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
-                    onError={e => { e.target.style.display = 'none'; }} />
+                {!form.imageUrl && (
+                  <div style={{ height: '52px', borderRadius: '0.5rem', background: 'rgba(237,224,208,0.32)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '0.45rem', letterSpacing: '0.04em' }}>
+                    aperçu de l'image
+                  </div>
                 )}
               </div>
-              {!form.imageUrl && (
-                <div style={{ height: '52px', borderRadius: '0.5rem', background: 'rgba(237,224,208,0.32)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '0.45rem', letterSpacing: '0.04em' }}>
-                  aperçu de l'image
+            </div>
+
+            <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+            {/* ◆ Vertus */}
+            <div style={ablock}>
+              <div className="block-head"><span className="block-sym">☽</span><span className="block-ttl">Vertus &amp; Propriétés</span><span className="block-line" /></div>
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label className="field-lbl">Vertus</label>
+                <TagInput values={form.virtues} onChange={v => field('virtues', v)} placeholder="+ vertu" />
+              </div>
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label className="field-lbl">Propriétés générales</label>
+                <TagInput values={form.properties} onChange={v => field('properties', v)} placeholder="+ propriété" />
+              </div>
+
+              <div>
+                <label className="field-lbl">Précautions</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
+                  {precautionOpts.map(opt => {
+                    const on = form.precautions.includes(opt);
+                    return (
+                      <button key={opt} type="button"
+                        onClick={() => field('precautions', on ? form.precautions.filter(x => x !== opt) : [...form.precautions, opt])}
+                        style={{
+                          fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+                          cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                          border: on ? '1px solid var(--copper)' : '1px solid var(--border)',
+                          color: on ? 'var(--copper)' : 'var(--text-sec)',
+                          background: on ? 'rgba(192,120,64,0.08)' : 'transparent',
+                        }}
+                      >{opt}</button>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          </div>
-
-          <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
-
-          {/* ◆ Vertus */}
-          <div style={ablock}>
-            <div className="block-head"><span className="block-sym">☽</span><span className="block-ttl">Vertus &amp; Propriétés</span><span className="block-line" /></div>
-            <div style={{ marginBottom: '1.4rem' }}>
-              <label className="field-lbl">Vertus</label>
-              <TagInput values={form.virtues} onChange={v => field('virtues', v)} placeholder="+ vertu" />
-            </div>
-            <div style={{ marginBottom: '1.4rem' }}>
-              <label className="field-lbl">Propriétés générales</label>
-              <TagInput values={form.properties} onChange={v => field('properties', v)} placeholder="+ propriété" />
-            </div>
-            <div>
-              <label className="field-lbl">Précautions</label>
-              <TagInput values={form.precautions} onChange={v => field('precautions', v)} placeholder="+ précaution" />
-            </div>
-          </div>
-
-          <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
-
-          {/* ◆ Énergies */}
-          <div style={ablock}>
-            <div className="block-head"><span className="block-sym">◯</span><span className="block-ttl">Énergies</span><span className="block-line" /></div>
-            <div style={{ marginBottom: '1.4rem' }}>
-              <label className="field-lbl">Chakras associés</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
-                {chakraOpts.map(opt => {
-                  const on = form.chakras.includes(opt);
-                  const c = CHAKRA_COLORS[opt] || {};
-                  return (
-                    <button key={opt} type="button"
-                      onClick={() => field('chakras', on ? form.chakras.filter(x => x !== opt) : [...form.chakras, opt])}
-                      style={{
-                        fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
-                        cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
-                        border: on ? `1px solid ${c.border}` : `1px solid ${c.def || 'var(--border)'}`,
-                        color: on ? c.border : (c.def ? c.border + 'CC' : 'var(--text-sec)'),
-                        background: on ? c.bg : 'transparent',
-                      }}
-                    >{opt}</button>
-                  );
-                })}
+                <TagInput values={form.precautions} onChange={v => field('precautions', v)} placeholder="+ précaution" />
               </div>
             </div>
-            <div>
-              <label className="field-lbl">Signes du zodiaque</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
-                {zodiacOpts.map(opt => {
-                  const on = form.zodiacSigns.includes(opt);
-                  return (
-                    <button key={opt} type="button"
-                      onClick={() => field('zodiacSigns', on ? form.zodiacSigns.filter(x => x !== opt) : [...form.zodiacSigns, opt])}
-                      style={{
-                        fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
-                        cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
-                        border: on ? '1px solid var(--copper)' : '1px solid var(--border)',
-                        color: on ? 'var(--copper)' : 'var(--text-sec)',
-                        background: on ? 'rgba(192,120,64,0.08)' : 'transparent',
-                      }}
-                    >{opt}</button>
-                  );
-                })}
+
+            <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+            {/* ◆ Énergies */}
+            <div style={ablock}>
+              <div className="block-head"><span className="block-sym">◯</span><span className="block-ttl">Énergies</span><span className="block-line" /></div>
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label className="field-lbl">Chakras associés</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
+                  {chakraOpts.map(opt => {
+                    const on = form.chakras.includes(opt);
+                    const c = CHAKRA_COLORS[opt] || {};
+                    return (
+                      <button key={opt} type="button"
+                        onClick={() => field('chakras', on ? form.chakras.filter(x => x !== opt) : [...form.chakras, opt])}
+                        style={{
+                          fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+                          cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                          border: on ? `1px solid ${c.border}` : `1px solid ${c.def || 'var(--border)'}`,
+                          color: on ? c.border : (c.def ? c.border + 'CC' : 'var(--text-sec)'),
+                          background: on ? c.bg : 'transparent',
+                        }}
+                      >{opt}</button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="field-lbl">Signes du zodiaque</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>
+                  {zodiacOpts.map(opt => {
+                    const on = form.zodiacSigns.includes(opt);
+                    return (
+                      <button key={opt} type="button"
+                        onClick={() => field('zodiacSigns', on ? form.zodiacSigns.filter(x => x !== opt) : [...form.zodiacSigns, opt])}
+                        style={{
+                          fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+                          cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                          border: on ? '1px solid var(--copper)' : '1px solid var(--border)',
+                          color: on ? 'var(--copper)' : 'var(--text-sec)',
+                          background: on ? 'rgba(192,120,64,0.08)' : 'transparent',
+                        }}
+                      >{opt}</button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+            <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
 
-          {/* ◆ Stock */}
-          <div style={ablock}>
-            <div className="block-head"><span className="block-sym">◇</span><span className="block-ttl">Stock initial</span><span className="block-line" /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.2rem' }}>
-              {STOCK_KEYS.map(({ key, label }) => (
-                <div key={key} style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.28rem' }}>{label}</div>
-                  <input type="number" min="0" value={form.stock[key]}
-                    onChange={e => field('stock', { ...form.stock, [key]: parseInt(e.target.value) || 0 })}
-                    style={{ width: '100%', textAlign: 'center', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '0.28rem', fontSize: '1rem', color: 'var(--text)', fontFamily: "'Playfair Display', serif", outline: 'none' }} />
-                </div>
-              ))}
+            {/* ◆ Stock */}
+            <div style={ablock}>
+              <div className="block-head"><span className="block-sym">◇</span><span className="block-ttl">Stock initial</span><span className="block-line" /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.2rem' }}>
+                {STOCK_KEYS.map(({ key, label }) => (
+                  <div key={key} style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '0.28rem' }}>{label}</div>
+                    <input type="number" min="0" value={form.stock[key]}
+                      onChange={e => field('stock', { ...form.stock, [key]: parseInt(e.target.value) || 0 })}
+                      style={{ width: '100%', textAlign: 'center', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '0.28rem', fontSize: '1rem', color: 'var(--text)', fontFamily: "'Playfair Display', serif", outline: 'none' }} />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Boutons */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.9rem', marginTop: '2.75rem' }}>
-            <button type="button" onClick={handleSave} disabled={saving} className="btn-save">
-              {saving ? '· · ·' : '✦  Enregistrer le cristal  ✦'}
-            </button>
-            <button type="button" onClick={() => navigate('/')} style={{ fontSize: '0.76rem', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'var(--border)', fontFamily: "'Inter', sans-serif" }}>
-              Annuler
-            </button>
-          </div>
+            {/* Boutons */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.9rem', marginTop: '2.75rem' }}>
+              <button type="button" onClick={handleSave} disabled={saving} className="btn-save">
+                {saving ? '· · ·' : '✦  Enregistrer le cristal  ✦'}
+              </button>
+              <button type="button" onClick={() => navigate('/')} style={{ fontSize: '0.76rem', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'var(--border)', fontFamily: "'Inter', sans-serif" }}>
+                Annuler
+              </button>
+            </div>
 
-          <div style={{ textAlign: 'center', color: 'var(--ocre)', fontSize: '0.85rem', letterSpacing: '0.38rem', opacity: 0.52, marginTop: '2.5rem' }}>✦ · · · ✦ · · · ✦</div>
-        </>
-      )}
+            <div style={{ textAlign: 'center', color: 'var(--ocre)', fontSize: '0.85rem', letterSpacing: '0.38rem', opacity: 0.52, marginTop: '2.5rem' }}>✦ · · · ✦ · · · ✦</div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

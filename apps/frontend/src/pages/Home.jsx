@@ -17,7 +17,7 @@ export default function Home() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {!loading && !error && (
         <div className="eyebrow mb-5">
-          {crystals.length} cristal{crystals.length !== 1 ? 'x' : ''}
+          {crystals.length} crista{crystals.length !== 1 ? 'ux' : 'l'}
         </div>
       )}
 

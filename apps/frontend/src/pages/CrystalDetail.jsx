@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import useCrystalStore from '../store/useCrystalStore';
 import useFavoritesStore from '../store/useFavoritesStore';
-import { crystalApi, chakraApi, zodiacApi } from '../services/api';
+import { crystalApi, chakraApi, zodiacApi, precautionApi } from '../services/api';
 
 const STOCK_CATEGORIES = [
   { key: 'perlesCailloux', label: 'Perles Cailloux' },
@@ -15,6 +15,7 @@ const STOCK_CATEGORIES = [
 
 const CHAKRA_NAMES = ['Racine', 'Sacré', 'Plexus Solaire', 'Cœur', 'Gorge', 'Troisième Œil', 'Couronne'];
 const ZODIAC_NAMES = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge', 'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons'];
+const PRECAUTION_NAMES = ["Éviter l'exposition prolongée au soleil (peut altérer la couleur et/ou les propriétés)", "Éviter les environnements humides", "Éviter le contact direct avec le sel", "Éviter le contact prolongé avec l'eau"];
 
 const CHAKRA_COLORS = {
   'Racine':         { border: '#CC3333', bg: 'rgba(204,51,51,0.09)' },
@@ -95,6 +96,26 @@ function ZodiacSelect({ options, selected, onChange }) {
   );
 }
 
+function PrecautionSelect({ options, selected, onChange }) {
+  const toggle = v => onChange(selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v]);
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+      {options.map(opt => {
+        const on = selected.includes(opt);
+        return (
+          <button key={opt} type="button" onClick={() => toggle(opt)} style={{
+            fontSize: '0.68rem', padding: '0.26rem 0.72rem', borderRadius: '999px',
+            cursor: 'pointer', fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+            border: on ? '1px solid var(--copper)' : '1px solid var(--border)',
+            color: on ? 'var(--copper)' : 'var(--text-sec)',
+            background: on ? 'rgba(192,120,64,0.08)' : 'transparent',
+          }}>{opt}</button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CrystalDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -108,11 +129,13 @@ export default function CrystalDetail() {
   const [editError, setEditError] = useState('');
   const [chakras, setChakras] = useState([]);
   const [zodiacs, setZodiacs] = useState([]);
+  const [precautions, setPrecautions] = useState([]);
 
   useEffect(() => {
     fetchCrystalById(id);
     chakraApi.getAll().then(setChakras).catch(() => {});
     zodiacApi.getAll().then(setZodiacs).catch(() => {});
+    precautionApi.getAll().then(setPrecautions).catch(() => {});
   }, [id]);
 
   function startEditing() {
@@ -141,6 +164,8 @@ export default function CrystalDetail() {
     try {
       const chakraIds = chakras.filter(c => editForm.chakras.includes(c.name)).map(c => c.id);
       const zodiacIds = zodiacs.filter(z => editForm.zodiacSigns.includes(z.name)).map(z => z.id);
+      const precautionsIds = precautions.filter(p => editForm.precautions.includes(p.description)).map(p => p.id);
+
       await crystalApi.update(id, {
         name: editForm.name.trim(), imageUrl: editForm.imageUrl || null,
         color: editForm.color, colors: editForm.colors, description: editForm.description,
@@ -182,6 +207,8 @@ export default function CrystalDetail() {
   if (isEditing && editForm) {
     const chakraOpts = chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES;
     const zodiacOpts = zodiacs.length ? zodiacs.map(z => z.name) : ZODIAC_NAMES;
+    const precautionOpts = precautions.length ? precautions.map(p => p.description) : PRECAUTION_NAMES;
+
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
@@ -222,7 +249,12 @@ export default function CrystalDetail() {
           <div className="block-head"><span className="block-sym">☽</span><span className="block-ttl">Vertus &amp; Propriétés</span><span className="block-line" /></div>
           <TagInput label="Vertus" values={editForm.virtues} onChange={v => field('virtues', v)} placeholder="Ex: Protection" />
           <TagInput label="Propriétés générales" values={editForm.properties} onChange={v => field('properties', v)} placeholder="Ex: Pierre de méditation" />
-          <TagInput label="Précautions" values={editForm.precautions} onChange={v => field('precautions', v)} placeholder="Ex: Sensible à l'eau" />
+          {/* <TagInput label="Précautionsss" values={editForm.precautions} onChange={v => field('precautions', v)} placeholder="Ex: Sensible à l'eau" /> */}
+        
+          <div style={{ marginBottom: '1.1rem' }}>
+            <label className="field-lbl" style={{ marginBottom: '0.5rem' }}>Précautions</label>
+            <PrecautionSelect options={precautionOpts} selected={editForm.precautions} onChange={v => field('precautions', v)} />
+          </div>
         </div>
 
         <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
@@ -279,7 +311,7 @@ export default function CrystalDetail() {
           {' / '}<span style={{ color: 'var(--text-sec)' }}>{crystal.name}</span>
         </div>
         <div style={{ display: 'flex', gap: '0.45rem' }}>
-          <button onClick={startEditing} className="btn-secondary" style={{ fontSize: '0.76rem' }}>Modifier</button>
+          <button onClick={startEditing} className="btn-secondary" style={{ fontSize: '0.76rem' }}>✎ Modifier</button>
           <button onClick={handleDelete} disabled={deleting} className="btn-danger" style={{ fontSize: '0.76rem' }}>
             {deleting ? '· · ·' : '✕ Supprimer'}
           </button>
@@ -298,7 +330,6 @@ export default function CrystalDetail() {
               <img src={crystal.imageUrl} alt={crystal.name} style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
             ) : (
               <>
-                <span style={{ position: 'absolute', top: '1rem', left: '1rem', color: 'var(--amber)', opacity: 0.45, fontSize: '0.72rem' }}>✦</span>
                 <div style={{ width: '96px', height: '96px', borderRadius: '50%', backgroundColor: crystal.color, boxShadow: `0 0 58px ${crystal.color}88` }} />
                 <span style={{ position: 'absolute', bottom: '1rem', right: '1rem', color: 'var(--amber)', opacity: 0.35, fontSize: '0.58rem' }}>✧</span>
               </>
@@ -351,7 +382,7 @@ export default function CrystalDetail() {
 
         {/* Droite */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-          <div>
+          <div >
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.1rem', color: 'var(--text)' }}>{crystal.name}</h1>
             {crystal.description && <p style={{ color: 'var(--text-sec)', lineHeight: 1.72, fontSize: '0.875rem', marginTop: '0.5rem' }}>{crystal.description}</p>}
           </div>
@@ -359,8 +390,8 @@ export default function CrystalDetail() {
           <div className="divider-cel" style={{ margin: 0 }}>✦ · · ✦</div>
 
           {crystal.virtues?.length > 0 && (
-            <div>
-              <div className="dsec-title"><span>∗</span> Vertus</div>
+            <div style={{padding: '0 0 1rem 0'}}>
+              <div className="dsec-title"><span>✧</span> Vertus</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.virtues.map(v => <span key={v} className="vbadge">{v}</span>)}
               </div>
@@ -368,12 +399,12 @@ export default function CrystalDetail() {
           )}
 
           {crystal.chakras?.length > 0 && (
-            <div>
-              <div className="dsec-title"><span>◯</span> Chakras associés</div>
+            <div style={{padding: '0 0 1rem 0'}}>
+              <div className="dsec-title"><span>𖦹</span> Chakras associés</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.chakras.map(ch => (
-                  <span key={ch.id} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', backgroundColor: ch.color + '14', color: ch.color, border: `1px solid ${ch.color}2E` }}>
-                    ◯ {ch.name}
+                  <span key={ch.id} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', backgroundColor: 'transparent', color: ch.color, border: `1px solid ${ch.color}` }}>
+                    {ch.name}
                   </span>
                 ))}
               </div>
@@ -381,7 +412,7 @@ export default function CrystalDetail() {
           )}
 
           {crystal.zodiacSigns?.length > 0 && (
-            <div>
+            <div style={{padding: '0 0 1rem 0'}}>
               <div className="dsec-title"><span>☽</span> Signes associés</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.zodiacSigns.map(z => (
@@ -394,8 +425,8 @@ export default function CrystalDetail() {
           )}
 
           {crystal.compatibleWith?.length > 0 && (
-            <div>
-              <div className="dsec-title"><span>◌</span> Compatible avec</div>
+            <div style={{padding: '0 0 1rem 0'}}>
+              <div className="dsec-title"><span>✔</span> Compatible avec</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {crystal.compatibleWith.map(c => (
                   <Link key={c.id} to={`/crystals/${c.id}`} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', border: '1px solid rgba(192,120,64,0.32)', color: 'var(--copper)', background: 'var(--bg)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -407,9 +438,23 @@ export default function CrystalDetail() {
             </div>
           )}
 
+          {crystal.incompatibleWith?.length > 0 && (
+            <div style={{padding: '0 0 1rem 0'}}>
+              <div className="dsec-title"><span>✘</span> Incompatible avec</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {crystal.incompatibleWith.map(c => (
+                  <Link key={c.id} to={`/crystals/${c.id}`} style={{ fontSize: '0.73rem', padding: '0.26rem 0.72rem', borderRadius: '999px', border: '1px solid rgba(192,120,64,0.32)', color: 'var(--copper)', background: 'var(--bg)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: c.color, display: 'inline-block' }} />
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {crystal.precautions?.length > 0 && (
             <div style={{ background: 'rgba(180,130,20,0.06)', border: '1px solid rgba(180,130,20,0.2)', borderRadius: '1rem', padding: '0.9rem 1.1rem' }}>
-              <div className="dsec-title"><span>△</span> Précautions</div>
+              <div className="dsec-title"><span>⚠︎</span> Précautions</div>
               <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {crystal.precautions.map(p => (
                   <li key={p.id} style={{ fontSize: '0.82rem', color: '#8B6914' }}>· {p.description}</li>

@@ -4,8 +4,8 @@ import useFavoritesStore from '../store/useFavoritesStore';
 const links = [
   { to: '/', label: 'Bibliothèque', sym: '✦' },
   { to: '/favorites', label: 'Favoris', sym: '♡' },
-  { to: '/creator', label: 'Création artisanale', sym: '⟡' },
-  { to: '/add-crystal', label: 'Ajouter', sym: '✧' },
+  { to: '/creator', label: 'Création artisanale', sym: '※' },
+  { to: '/add-crystal', label: 'Ajouter un cristal', sym: '𖡟' },
 ];
 
 export default function Navbar() {
@@ -48,7 +48,7 @@ export default function Navbar() {
                 border: isActive ? '1px solid rgba(192,120,64,0.22)' : '1px solid transparent',
                 background: isActive ? 'rgba(192,120,64,0.11)' : 'transparent',
                 color: isActive ? 'var(--copper)' : 'var(--text-sec)',
-                transition: 'all 0.2s',
+                transition: 'all 0.2s', 
               }}
             >
               <span style={{ fontSize: '0.85rem', opacity: 0.85 }}>{link.sym}</span>

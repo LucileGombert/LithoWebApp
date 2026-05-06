@@ -1,4 +1,5 @@
 const crystalService = require('../services/crystalService');
+import { precautionApi } from './../../../frontend/src/services/api';
 const researchService = require('../services/researchService');
 const aiService = require('../services/aiService');
 
@@ -25,6 +26,7 @@ async function getCrystalById(req, res) {
     const crystal = await crystalService.getCrystalById(req.params.id);
     if (!crystal) return res.status(404).json({ error: 'Cristal non trouvé' });
     res.json(crystal);
+    console.log('\n✨ Log : ' + crystal.name);
   } catch (err) {
     console.error('getCrystalById error:', err);
     res.status(500).json({ error: 'Erreur lors de la récupération du cristal' });

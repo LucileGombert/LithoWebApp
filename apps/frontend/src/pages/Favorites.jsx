@@ -21,7 +21,7 @@ export default function Favorites() {
           ♡ Mes favoris
         </h1>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-          {favorites.length} cristal{favorites.length !== 1 ? 'x' : ''}
+          {favorites.length} crista{favorites.length !== 1 ? 'ux' : 'l'}
         </span>
         {favorites.length > 0 && (
           <button

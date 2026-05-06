@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import useFavoritesStore from '../store/useFavoritesStore';
+import { useState, useEffect } from 'react';
 
 export default function CrystalCard({ crystal }) {
   const { toggleFavorite, isFavorite } = useFavoritesStore();
@@ -15,6 +16,11 @@ export default function CrystalCard({ crystal }) {
     : totalStock === 0 ? { label: 'Rupture', s: { background: 'rgba(160,50,30,0.09)', color: '#A03020', border: '1px solid rgba(160,50,30,0.22)' } }
     : totalStock < 10  ? { label: `${totalStock} en stock`, s: { background: 'rgba(180,130,20,0.12)', color: '#8B6914', border: '1px solid rgba(180,130,20,0.28)' } }
     : { label: `${totalStock} en stock`, s: { background: 'rgba(192,120,64,0.13)', color: 'var(--copper)', border: '1px solid rgba(192,120,64,0.28)' } };
+
+  const [chakras, setChakras] = useState([]);
+  const [form, setForm] = useState();
+  const CHAKRA_NAMES = ['Racine', 'Sacré', 'Plexus Solaire', 'Cœur', 'Gorge', 'Troisième Œil', 'Couronne'];
+  const chakraOpts = chakras.length ? chakras.map(c => c.name) : CHAKRA_NAMES;
 
   return (
     <div className="crystal-card group relative">
@@ -86,13 +92,19 @@ export default function CrystalCard({ crystal }) {
             {crystal.chakras.slice(0, 2).map(ch => (
               <span key={ch.id} style={{
                 fontSize: '0.63rem', padding: '0.18rem 0.5rem', borderRadius: '999px', fontWeight: 500,
-                backgroundColor: ch.color + '18', color: ch.color, border: `1px solid ${ch.color}30`,
+                // backgroundColor: ch.color + '18', color: ch.color, border: `1px solid ${ch.color}30`,
+                backgroundColor: 'transparent', 
+                color: ch.color,
+                border: `1px solid ${ch.color}`,
               }}>
-                ◯ {ch.name}
+                {ch.name}
               </span>
             ))}
           </div>
         )}
+        
+        
+      
       </div>
     </div>
   );

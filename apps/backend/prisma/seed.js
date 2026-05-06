@@ -5,29 +5,29 @@ async function main() {
 
   // Chakras (7 chakras principaux)
   const chakras = await Promise.all([
-    prisma.chakra.upsert({ where: { name: 'Racine' }, update: {}, create: { name: 'Racine', color: '#FF0000', position: 1, description: 'Ancrage, sécurité, survie' } }),
-    prisma.chakra.upsert({ where: { name: 'Sacré' }, update: {}, create: { name: 'Sacré', color: '#FF7F00', position: 2, description: 'Créativité, sexualité, émotions' } }),
-    prisma.chakra.upsert({ where: { name: 'Plexus Solaire' }, update: {}, create: { name: 'Plexus Solaire', color: '#FFFF00', position: 3, description: 'Pouvoir personnel, confiance en soi' } }),
-    prisma.chakra.upsert({ where: { name: 'Cœur' }, update: {}, create: { name: 'Cœur', color: '#00FF00', position: 4, description: 'Amour, compassion, guérison' } }),
-    prisma.chakra.upsert({ where: { name: 'Gorge' }, update: {}, create: { name: 'Gorge', color: '#00FFFF', position: 5, description: 'Communication, expression, vérité' } }),
-    prisma.chakra.upsert({ where: { name: 'Troisième Œil' }, update: {}, create: { name: 'Troisième Œil', color: '#0000FF', position: 6, description: 'Intuition, perception, sagesse' } }),
-    prisma.chakra.upsert({ where: { name: 'Couronne' }, update: {}, create: { name: 'Couronne', color: '#8B00FF', position: 7, description: 'Spiritualité, connexion divine' } }),
+    prisma.chakra.upsert({ where: { name: 'Racine' }, update: {}, create: { name: 'Racine', color: '#cc3333cc', position: 1, description: 'Ancrage, sécurité, survie' } }),
+    prisma.chakra.upsert({ where: { name: 'Sacré' }, update: {}, create: { name: 'Sacré', color: '#cc7000cc', position: 2, description: 'Créativité, sexualité, émotions, passion, capacité d adaptation' } }),
+    prisma.chakra.upsert({ where: { name: 'Plexus Solaire' }, update: {}, create: { name: 'Plexus Solaire', color: '#b8900acc', position: 3, description: 'Pouvoir personnel, confiance en soi, estime de soi, volonté' } }),
+    prisma.chakra.upsert({ where: { name: 'Cœur' }, update: {}, create: { name: 'Cœur', color: '#2e7d42cc', position: 4, description: 'Amour, compassion, empathie, guérison' } }),
+    prisma.chakra.upsert({ where: { name: 'Gorge' }, update: {}, create: { name: 'Gorge', color: '#007b8acc', position: 5, description: 'Communication, expression, vérité, authenticité' } }),
+    prisma.chakra.upsert({ where: { name: 'Troisième Œil' }, update: {}, create: { name: 'Troisième Œil', color: '#2a3c9ecc', position: 6, description: 'Intuition, perception, sagesse' } }),
+    prisma.chakra.upsert({ where: { name: 'Couronne' }, update: {}, create: { name: 'Couronne', color: '#7a1f8ccc', position: 7, description: 'Spiritualité, connexion divine' } }),
   ]);
 
   // Signes du zodiaque
   const zodiacs = await Promise.all([
-    prisma.zodiacSign.upsert({ where: { name: 'Bélier' }, update: {}, create: { name: 'Bélier', symbol: '♈', element: 'Feu' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Taureau' }, update: {}, create: { name: 'Taureau', symbol: '♉', element: 'Terre' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Gémeaux' }, update: {}, create: { name: 'Gémeaux', symbol: '♊', element: 'Air' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Cancer' }, update: {}, create: { name: 'Cancer', symbol: '♋', element: 'Eau' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Lion' }, update: {}, create: { name: 'Lion', symbol: '♌', element: 'Feu' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Vierge' }, update: {}, create: { name: 'Vierge', symbol: '♍', element: 'Terre' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Balance' }, update: {}, create: { name: 'Balance', symbol: '♎', element: 'Air' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Scorpion' }, update: {}, create: { name: 'Scorpion', symbol: '♏', element: 'Eau' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Sagittaire' }, update: {}, create: { name: 'Sagittaire', symbol: '♐', element: 'Feu' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Capricorne' }, update: {}, create: { name: 'Capricorne', symbol: '♑', element: 'Terre' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Verseau' }, update: {}, create: { name: 'Verseau', symbol: '♒', element: 'Air' } }),
-    prisma.zodiacSign.upsert({ where: { name: 'Poissons' }, update: {}, create: { name: 'Poissons', symbol: '♓', element: 'Eau' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Bélier' }, update: {}, create: { name: 'Bélier', symbol: '♈︎', element: 'Feu' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Taureau' }, update: {}, create: { name: 'Taureau', symbol: '♉︎', element: 'Terre' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Gémeaux' }, update: {}, create: { name: 'Gémeaux', symbol: '♊︎', element: 'Air' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Cancer' }, update: {}, create: { name: 'Cancer', symbol: '♋︎', element: 'Eau' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Lion' }, update: {}, create: { name: 'Lion', symbol: '♌︎', element: 'Feu' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Vierge' }, update: {}, create: { name: 'Vierge', symbol: '♍︎', element: 'Terre' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Balance' }, update: {}, create: { name: 'Balance', symbol: '♎︎', element: 'Air' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Scorpion' }, update: {}, create: { name: 'Scorpion', symbol: '♏︎', element: 'Eau' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Sagittaire' }, update: {}, create: { name: 'Sagittaire', symbol: '♐︎', element: 'Feu' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Capricorne' }, update: {}, create: { name: 'Capricorne', symbol: '♑︎', element: 'Terre' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Verseau' }, update: {}, create: { name: 'Verseau', symbol: '♒︎', element: 'Air' } }),
+    prisma.zodiacSign.upsert({ where: { name: 'Poissons' }, update: {}, create: { name: 'Poissons', symbol: '♓︎', element: 'Eau' } }),
   ]);
 
   // Types de création artisanale

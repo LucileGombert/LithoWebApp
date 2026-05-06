@@ -57,7 +57,7 @@ export default function FilterBar() {
             background: ch.color + '18',
           } : chipBase}
         >
-          ◯ {ch.name}
+          {ch.name}
         </button>
       ))}
 

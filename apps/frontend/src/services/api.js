@@ -48,3 +48,8 @@ export const zodiacApi = {
 export const creationTypeApi = {
   getAll: () => request('/creation-types')
 };
+
+// === Précautions ===
+export const precautionApi = {
+  getAll: () => request('/precautions')
+};

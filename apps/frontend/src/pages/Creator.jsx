@@ -163,7 +163,7 @@ export default function Creator() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="eyebrow mb-2">⟡ &nbsp; Atelier</div>
+      <div className="eyebrow mb-2">※ &nbsp; Atelier &nbsp; ※</div>
       <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.85rem', color: 'var(--text)', marginBottom: '0.3rem' }}>
         Création artisanale
       </h1>
@@ -379,7 +379,7 @@ export default function Creator() {
                     ◇ Ma sélection
                   </h2>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                    {selectedFull.length} cristal{selectedFull.length > 1 ? 'x' : ''}
+                    {selectedFull.length} crista{selectedFull.length > 1 ? 'ux' : 'l'}
                   </span>
                 </div>
                 <button

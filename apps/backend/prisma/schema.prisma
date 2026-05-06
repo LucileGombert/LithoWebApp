@@ -84,6 +84,8 @@ model Crystal {
   // Incompatibilités entre cristaux
   incompatibleWith Crystal[] @relation("CrystalIncompatibility")
   incompatibleFrom Crystal[] @relation("CrystalIncompatibility")
+  purification    String[]
+  rechargement    String[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }

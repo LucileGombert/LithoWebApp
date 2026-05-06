@@ -5,7 +5,7 @@ import { crystalApi, chakraApi, zodiacApi, precautionApi } from '../services/api
 const emptyForm = {
   name: '', color: '#8B5CF6', imageUrl: '', colors: [], description: '',
   virtues: [], properties: [], origin: '', chakras: [], zodiacSigns: [],
-  precautions: [],
+  purification: [], rechargement: [], precautions: [],
   stock: { perlesCailloux: 0, perles2mm: 0, perles4mm: 0, perles6mm: 0, pierresRoulees: 0, pierresBrutes: 0 },
 };
 
@@ -94,7 +94,7 @@ export default function AddCrystal() {
         description: data.description ?? '', virtues: data.virtues ?? [],
         properties: data.properties ?? [], origin: data.origin ?? '',
         chakras: data.chakras ?? [], zodiacSigns: data.zodiacSigns ?? [],
-        precautions: data.precautions ?? [],
+        purification: data.purification ?? [], rechargement: data.rechargement ?? [], precautions: data.precautions ?? [],
         stock: { perlesCailloux: 0, perles2mm: 0, perles4mm: 0, perles6mm: 0, pierresRoulees: 0, pierresBrutes: 0 },
       });
       setShowForm(true);
@@ -117,7 +117,8 @@ export default function AddCrystal() {
         name: form.name.trim(), color: form.color, imageUrl: form.imageUrl || null,
         colors: form.colors, description: form.description, virtues: form.virtues,
         properties: form.properties, hardness: null, origin: form.origin || null,
-        chakraIds, zodiacIds, precautions: form.precautions, stock: form.stock,
+        chakraIds, zodiacIds, purification: form.purification, rechargement: form.rechargement, 
+        precautionIds, stock: form.stock,
       });
       navigate(`/crystals/${created.id}`);
     } catch (err) { setError(err.message || 'Erreur lors de la sauvegarde.'); }
@@ -246,6 +247,7 @@ export default function AddCrystal() {
             {/* ◆ Identité */}
             <div style={ablock}>
               <div className="block-head"><span className="block-sym">✦</span><span className="block-ttl">Identité</span><span className="block-line" /></div>
+              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.4rem' }}>
                 <div>
                   <label className="field-lbl">Couleur principale</label>
@@ -260,10 +262,12 @@ export default function AddCrystal() {
                   <input type="text" value={form.origin} onChange={e => field('origin', e.target.value)} placeholder="Finlande, Madagascar…" className="field-inp" />
                 </div>
               </div>
+              
               <div style={{ marginBottom: '1.4rem' }}>
                 <label className="field-lbl">Description</label>
                 <textarea value={form.description} onChange={e => field('description', e.target.value)} rows={3} className="field-area" placeholder="Décrivez les propriétés lithothérapeutiques du cristal…" />
               </div>
+              
               <div>
                 <label className="field-lbl">Image — URL</label>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
@@ -290,9 +294,27 @@ export default function AddCrystal() {
                 <label className="field-lbl">Vertus</label>
                 <TagInput values={form.virtues} onChange={v => field('virtues', v)} placeholder="+ vertu" />
               </div>
-              <div style={{ marginBottom: '1.4rem' }}>
+
+              <div>
                 <label className="field-lbl">Propriétés générales</label>
                 <TagInput values={form.properties} onChange={v => field('properties', v)} placeholder="+ propriété" />
+              </div>
+            </div>
+
+            <div className="block-sep">◦ &nbsp; ◦ &nbsp; ◦</div>
+
+            {/* ◆ Entretien */}
+            <div style={ablock}>
+              <div className="block-head"><span className="block-sym">◯</span><span className="block-ttl">Entretien</span><span className="block-line" /></div>
+              
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label className="field-lbl">Purification</label>
+                <TagInput values={form.purification} onChange={v => field('purification', v)} placeholder="+ purification" />
+              </div>
+
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label className="field-lbl">Rechargement</label>
+                <TagInput values={form.rechargement} onChange={v => field('rechargement', v)} placeholder="+ rechargement" />
               </div>
 
               <div>
@@ -314,7 +336,6 @@ export default function AddCrystal() {
                     );
                   })}
                 </div>
-                <TagInput values={form.precautions} onChange={v => field('precautions', v)} placeholder="+ précaution" />
               </div>
             </div>
 
@@ -323,6 +344,7 @@ export default function AddCrystal() {
             {/* ◆ Énergies */}
             <div style={ablock}>
               <div className="block-head"><span className="block-sym">◯</span><span className="block-ttl">Énergies</span><span className="block-line" /></div>
+              
               <div style={{ marginBottom: '1.4rem' }}>
                 <label className="field-lbl">Chakras associés</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem' }}>

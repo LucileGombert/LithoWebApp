@@ -41,14 +41,14 @@ async function main() {
   ]);
 
   // Précautions communes
-  const precautionEau = await prisma.precaution.upsert({
+/*   const precautionEau = await prisma.precaution.upsert({
     where: { id: 1 }, update: { description: 'Ne pas mettre en contact avec l\'eau (soluble ou fragile)' },
     create: { description: 'Ne pas mettre en contact avec l\'eau (soluble ou fragile)' }
   });
   const precautionSoleil = await prisma.precaution.upsert({
     where: { id: 2 }, update: { description: 'Éviter l\'exposition prolongée au soleil (peut se décolorer)' },
     create: { description: 'Éviter l\'exposition prolongée au soleil (peut se décolorer)' }
-  });
+  }); */
  
 
   // ===== CRISTAUX =====
@@ -65,6 +65,8 @@ async function main() {
       origin: 'Brésil, Uruguay, Afrique du Sud',
       chakraNames: ['Troisième Œil', 'Couronne'],
       zodiacNames: ['Poissons', 'Verseau', 'Vierge'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       precautionIds: [2], // décoloration soleil
       stock: { perlesCailloux: 50, perles4mm: 30, perles6mm: 20, pierresRoulees: 15, pierresBrutes: 8, perles2mm: 0 }
     },
@@ -80,6 +82,8 @@ async function main() {
       origin: 'Brésil, Madagascar, Inde',
       chakraNames: ['Cœur'],
       zodiacNames: ['Taureau', 'Balance', 'Cancer'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       stock: { perlesCailloux: 80, perles4mm: 50, perles6mm: 35, pierresRoulees: 25, pierresBrutes: 10, perles2mm: 20 }
     },
     {
@@ -94,6 +98,8 @@ async function main() {
       origin: 'Afghanistan, Chili, Russie',
       chakraNames: ['Troisième Œil', 'Gorge'],
       zodiacNames: ['Sagittaire', 'Balance', 'Verseau'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       precautionIds: [1], // eau
       stock: { perlesCailloux: 30, perles4mm: 20, perles6mm: 10, pierresRoulees: 8, pierresBrutes: 5, perles2mm: 0 }
     },
@@ -109,6 +115,8 @@ async function main() {
       origin: 'Brésil, Madagascar, Espagne',
       chakraNames: ['Plexus Solaire', 'Sacré'],
       zodiacNames: ['Lion', 'Gémeaux', 'Bélier', 'Balance'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       precautionIds: [2], // soleil
       stock: { perlesCailloux: 60, perles4mm: 40, perles6mm: 25, pierresRoulees: 20, pierresBrutes: 12, perles2mm: 15 }
     },
@@ -124,6 +132,8 @@ async function main() {
       origin: 'Mexique, USA, Islande',
       chakraNames: ['Racine'],
       zodiacNames: ['Scorpion', 'Sagittaire'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       precautionIds: [], // aucune précaution spéciale
       stock: { perlesCailloux: 40, perles4mm: 25, perles6mm: 15, pierresRoulees: 20, pierresBrutes: 10, perles2mm: 0 }
     },
@@ -139,6 +149,8 @@ async function main() {
       origin: 'Congo, Russie, Zambie',
       chakraNames: ['Cœur', 'Plexus Solaire'],
       zodiacNames: ['Scorpion', 'Capricorne', 'Taureau'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       precautionIds: [1], // eau (contient du cuivre)
       stock: { perlesCailloux: 25, perles4mm: 15, perles6mm: 8, pierresRoulees: 10, pierresBrutes: 5, perles2mm: 0 }
     },
@@ -154,6 +166,8 @@ async function main() {
       origin: 'Canada, Finlande, Madagascar',
       chakraNames: ['Troisième Œil', 'Gorge', 'Couronne'],
       zodiacNames: ['Lion', 'Scorpion', 'Sagittaire'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       stock: { perlesCailloux: 35, perles4mm: 20, perles6mm: 12, pierresRoulees: 15, pierresBrutes: 7, perles2mm: 0 }
     },
     {
@@ -168,6 +182,8 @@ async function main() {
       origin: 'Sri Lanka, Inde, Madagascar',
       chakraNames: ['Sacré', 'Troisième Œil', 'Couronne'],
       zodiacNames: ['Cancer', 'Balance', 'Scorpion'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       precautionIds: [1], // eau
       stock: { perlesCailloux: 20, perles4mm: 15, perles6mm: 8, pierresRoulees: 10, pierresBrutes: 3, perles2mm: 0 }
     },
@@ -183,6 +199,8 @@ async function main() {
       origin: 'Afrique du Sud, Australie, Inde',
       chakraNames: ['Plexus Solaire', 'Racine', 'Sacré'],
       zodiacNames: ['Lion', 'Capricorne', 'Gémeaux'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       stock: { perlesCailloux: 55, perles4mm: 35, perles6mm: 22, pierresRoulees: 18, pierresBrutes: 0, perles2mm: 10 }
     },
     {
@@ -197,6 +215,8 @@ async function main() {
       origin: 'Brésil, Pakistan, USA',
       chakraNames: ['Racine'],
       zodiacNames: ['Capricorne', 'Scorpion'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       stock: { perlesCailloux: 45, perles4mm: 28, perles6mm: 16, pierresRoulees: 20, pierresBrutes: 12, perles2mm: 0 }
     },
     {
@@ -211,6 +231,8 @@ async function main() {
       origin: 'Inde, Brésil, Russie',
       chakraNames: ['Cœur'],
       zodiacNames: ['Taureau', 'Vierge', 'Cancer'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       stock: { perlesCailloux: 70, perles4mm: 45, perles6mm: 30, pierresRoulees: 22, pierresBrutes: 5, perles2mm: 20 }
     },
     {
@@ -225,6 +247,8 @@ async function main() {
       origin: 'Canada, Brésil, Namibie',
       chakraNames: ['Troisième Œil', 'Gorge'],
       zodiacNames: ['Sagittaire', 'Verseau'],
+      purification: ['Lune', 'Sel'],
+      rechargement: ['Géode de quartz', 'Lumière de pleine lune', 'Fleur de vie'],
       stock: { perlesCailloux: 40, perles4mm: 25, perles6mm: 14, pierresRoulees: 12, pierresBrutes: 6, perles2mm: 8 }
     }
   ];

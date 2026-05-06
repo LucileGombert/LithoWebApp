@@ -54,7 +54,7 @@ async function createCrystal(req, res) {
   try {
     const { name, color } = req.body;
     if (!name || !color) {
-      return res.status(400).json({ error: 'Les champs name et color sont requis' });
+      return res.status(400).json({ error: 'Les champs nom et couleur sont requis' });
     }
     // Générer le slug depuis le nom
     if (!req.body.slug) {
@@ -65,7 +65,7 @@ async function createCrystal(req, res) {
   } catch (err) {
     console.error('createCrystal error:', err);
     if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'Un cristal avec ce nom ou slug existe déjà' });
+      return res.status(409).json({ error: 'Un cristal avec ce nom existe déjà' });
     }
     res.status(500).json({ error: 'Erreur lors de la création du cristal' });
   }
